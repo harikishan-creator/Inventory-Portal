@@ -1,0 +1,8 @@
+{
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/packaging", "destination": "/packaging.html" },
+    { "source": "/certificates", "destination": "/certificates.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
