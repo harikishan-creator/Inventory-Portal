@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Packaging DRR Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e4e7ed;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --blue:#2563eb;--blue-dim:#eff6ff;--blue-mid:#bfdbfe;
+  --green:#16a34a;--green-dim:#f0fdf4;--green-mid:#bbf7d0;
+  --amber:#d97706;--amber-dim:#fffbeb;--amber-mid:#fde68a;
+  --red:#dc2626;--red-dim:#fef2f2;--red-mid:#fecaca;
+  --teal:#0d9488;--teal-dim:#f0fdfa;--teal-mid:#99f6e4;
+  --purple:#7c3aed;--purple-dim:#faf5ff;--purple-mid:#ddd6fe;
+  --orange:#ea580c;--orange-dim:#fff7ed;--orange-mid:#fed7aa;
+  --r:8px;--rl:12px;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+.header{background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px;gap:8px}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#0d9488,#0891b2);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(13,148,136,0.35)}
+.logo-title{font-weight:600;font-size:15px;color:var(--text)}
+.logo-badge{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+nav{display:flex;gap:4px}
+.nav-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;background:transparent;border:1px solid transparent;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.nav-btn.active{background:var(--blue-dim);border-color:var(--blue-mid);color:var(--blue);font-weight:500}
+.nav-btn:hover:not(.active){background:var(--bg3);color:var(--text)}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+.date-label{font-size:11px;color:var(--text3)}
+.upload-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;background:var(--blue);border:none;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;box-shadow:0 1px 4px rgba(37,99,235,0.3)}
+.upload-btn:hover{background:#1d4ed8}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.overlay.hidden{display:none}
+.modal{background:#fff;border-radius:14px;padding:2rem;width:min(560px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.18)}
+.modal h2{font-size:17px;font-weight:600;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:1.1rem;line-height:1.6}
+.col-list{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal);background:var(--teal-dim);border:1px solid var(--teal-mid);border-radius:6px;padding:8px 10px;margin-bottom:1.1rem;line-height:1.8}
+.dropzone{border:2px dashed var(--border2);border-radius:10px;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1rem}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--blue);background:var(--blue-dim)}
+.dropzone-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px}
+.dropzone-sub{font-size:12px;color:var(--text3)}
+.dropzone input[type=file]{display:none}
+.col-preview{margin-bottom:1rem;display:none}
+.col-preview-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.col-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.col-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:5px;padding:5px 10px;font-size:11px}
+.col-ok{color:var(--green);font-weight:500}
+.col-miss{color:var(--red);font-weight:500}
+.modal-status{font-size:12px;padding:7px 10px;border-radius:6px;display:none;margin-bottom:1rem}
+.modal-status.ok{background:var(--green-dim);color:var(--green);border:1px solid var(--green-mid);display:block}
+.modal-status.err{background:var(--red-dim);color:var(--red);border:1px solid var(--red-mid);display:block}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;border:none;transition:all .15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover:not(:disabled){background:#1d4ed8}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:#fff;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--bg3)}
+
+/* SOURCE BANNER */
+.source-banner{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;margin-bottom:1.25rem;font-size:12px}
+.source-info{display:flex;align-items:center;gap:8px;color:var(--text2)}
+.src-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.src-dot.live{background:var(--green)}
+.src-dot.embedded{background:var(--text3)}
+.src-change-btn{font-size:11px;padding:4px 10px;border-radius:5px;background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit}
+.src-change-btn:hover{background:var(--bg3)}
+
+/* LAYOUT */
+.wrap{max-width:1440px;margin:0 auto;padding:1.5rem}
+.view{display:none}.view.active{display:block}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:1.5rem}
+.mcard{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:.9rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.mcard-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mcard-label{font-size:12px;color:var(--text2)}
+.mcard-val{font-size:22px;font-weight:600;line-height:1.1;color:var(--text)}
+.mcard-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:1.1rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.chart-wrap{position:relative;width:100%}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:5px}
+.badge-ok{background:var(--green-dim);color:var(--green);border:1px solid var(--green-mid)}
+.badge-low{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-mid)}
+.badge-critical{background:var(--red-dim);color:var(--red);border:1px solid var(--red-mid)}
+.badge-nodrr{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--bg3)}
+th{padding:9px 10px;text-align:left;color:var(--text2);font-weight:500;font-size:11px;border-bottom:1px solid var(--border);white-space:nowrap;user-select:none}
+th.num,td.num{text-align:right}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
+tr.alt{background:#fafbfc}
+tr.expanded-row{background:var(--teal-dim)!important;border-left:2px solid var(--teal)}
+tr:not(.no-hover):hover td{background:#f0f7ff;cursor:pointer}
+tr.total-row{background:var(--bg3)!important;font-weight:600}
+tr.total-row td{border-top:1px solid var(--border2)}
+.mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal)}
+
+/* REQ PERIOD TOGGLE */
+.period-toggle{display:flex;gap:0;border:1px solid var(--border2);border-radius:7px;overflow:hidden;flex-shrink:0}
+.period-btn{padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;border:none;background:#fff;color:var(--text2);transition:all .15s;border-right:1px solid var(--border2)}
+.period-btn:last-child{border-right:none}
+.period-btn.active{background:var(--blue);color:#fff}
+.period-btn:hover:not(.active){background:var(--bg3)}
+
+/* EXPAND PANEL */
+.expand-td{padding:0!important;border-bottom:1px solid var(--border2)!important}
+.expand-inner{padding:1.1rem 1.25rem;background:var(--teal-dim);display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;border-top:1px solid var(--teal-mid)}
+.exp-section-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,0.08)}
+.drr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:.75rem}
+.drr-box{background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.drr-box.hl{background:var(--blue-dim);border-color:var(--blue-mid)}
+.dbl{font-size:9px;color:var(--text3);margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.dbv{font-size:16px;font-weight:600;color:var(--text)}
+.drr-box.hl .dbl{color:var(--blue)}.drr-box.hl .dbv{color:var(--blue)}
+.req-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.75rem}
+.req-box{background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.req-box.active-period{border-color:var(--blue-mid);background:var(--blue-dim)}
+.rbl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:var(--text3)}
+.req-box.active-period .rbl{color:var(--blue)}
+.rbv{font-size:14px;font-weight:600}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:.75rem}
+.stat-box{background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.sbl{font-size:9px;color:var(--text3);margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.sbv{font-size:14px;font-weight:600}
+.cov-bar-bg{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin:4px 0}
+.cov-bar-fill{height:100%;border-radius:3px}
+.po-mini{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.po-mini th{padding:6px 8px;color:var(--text2);font-weight:500;font-size:10px;border-bottom:1px solid var(--border);background:#fff}
+.po-mini td{padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text2)}
+.po-mini tr:last-child td{border-bottom:none}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;background:#fff;border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px 8px 32px;color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.search-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+select{background:#fff;border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit}
+.rc{font-size:12px;color:var(--text3);white-space:nowrap}
+
+.legend{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.ll{width:16px;height:2px;border-radius:1px;display:inline-block}
+.ls{width:10px;height:10px;border-radius:2px;display:inline-block}
+.footer{text-align:center;font-size:11px;color:var(--text3);padding-top:1rem;border-top:1px solid var(--border);margin-top:1rem}
+
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;background:var(--teal);border:none;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;box-shadow:0 1px 4px rgba(13,148,136,0.3)}
+.refresh-btn:hover:not(:disabled){background:#0f766e}
+.refresh-btn:disabled{opacity:.6;cursor:not-allowed}
+.refresh-btn.spinning svg{animation:spin-anim .7s linear infinite}
+@keyframes spin-anim{to{transform:rotate(360deg)}}
+.src-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;background:var(--text3)}
+.src-dot.live{background:var(--green)}
+.src-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+.src-dot.error-state{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.loading-overlay{position:fixed;inset:0;background:rgba(245,246,248,0.92);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.loading-overlay.hidden{display:none}
+.spinner-lg{width:38px;height:38px;border:3px solid var(--bg4);border-top-color:var(--teal);border-radius:50%;animation:spin-anim .7s linear infinite}
+.loading-text{font-size:14px;font-weight:500;color:var(--text2)}
+.loading-sub{font-size:12px;color:var(--text3)}
+</style>
+</head>
+<body>
+
+
+<div id="loading-overlay" class="loading-overlay">
+  <div class="spinner-lg"></div>
+  <div class="loading-text">Fetching live data from Google Sheets…</div>
+  <div class="loading-sub">Packaging SKU · Products DRR · WH Inventory</div>
+</div>
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+      <span class="logo-title">Packaging Dashboard</span>
+      <span class="logo-badge">DRR Tracker</span>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="switchView('overview',this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+      </button>
+      <button class="nav-btn" onclick="switchView('drr',this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>DRR & Coverage
+      </button>
+      <button class="nav-btn" onclick="switchView('po',this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Open POs
+      </button>
+    </nav>
+    <div class="header-right">
+      <div class="date-label" id="date-label"></div>
+      <button class="refresh-btn" id="refresh-btn" onclick="fetchAllSheets()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
+      <button class="upload-btn" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload CSV
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD OVERLAY -->
+<div class="overlay hidden" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <h2>Upload packaging CSV</h2>
+    <p class="modal-sub">Upload a fresh export to refresh all data. Required columns:</p>
+    <div class="col-list">Item SKU Code · Packaging description · Name</div>
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()"
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
+      <input type="file" id="file-input" accept=".csv" onchange="handleFile(event)"/>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" style="display:block;margin:0 auto 10px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div class="dropzone-title">Drop CSV here or click to browse</div>
+      <div class="dropzone-sub" id="file-name-label">No file selected</div>
+    </div>
+    <div class="col-preview" id="col-preview">
+      <div class="col-preview-title">Column check</div>
+      <div class="col-grid" id="col-grid"></div>
+    </div>
+    <div class="modal-status" id="modal-status"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeUpload()">Cancel</button>
+      <button class="btn btn-primary" id="load-btn" onclick="loadCSV()" disabled>Load data</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="source-banner">
+    <div class="source-info">
+      <span class="src-dot loading" id="src-dot"></span>
+      <span id="src-text">Built-in data · 28 May 2026</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:var(--text3)">To refresh data:</span>
+      <button class="upload-btn" style="display:none" style="font-size:12px;padding:5px 12px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="view-overview" class="view active">
+    <div class="metric-grid" id="metric-grid"></div>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">Coverage health breakdown</div>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <div class="chart-wrap" style="height:185px;flex:1"><canvas id="pieChart"></canvas></div>
+          <div id="pie-legend" style="min-width:150px;display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">DRR 30d by packaging type</div>
+        <div class="chart-wrap" style="height:185px"><canvas id="drrBarChart"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">Open PO pending qty</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="poBarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Requirement vs pending PO</span>
+          <div class="period-toggle">
+            <button class="period-btn" onclick="setOverviewPeriod(30,this)">30d</button>
+            <button class="period-btn active" onclick="setOverviewPeriod(60,this)">60d</button>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:205px"><canvas id="req6mChart"></canvas></div>
+        <div class="legend">
+          <span class="li"><span class="ls" style="background:rgba(220,38,38,0.45)"></span>Requirement</span>
+          <span class="li"><span class="ls" style="background:rgba(22,163,74,0.55)"></span>Pending PO</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">DRR trend — 7d vs 15d vs 30d vs Max</div>
+      <div class="chart-wrap" style="height:195px"><canvas id="trendChart"></canvas></div>
+      <div class="legend">
+        <span class="li"><span class="ll" style="background:#2563eb"></span>7-day</span>
+        <span class="li"><span class="ll" style="background:#7c3aed"></span>15-day</span>
+        <span class="li"><span class="ll" style="background:#0d9488"></span>30-day</span>
+        <span class="li"><span class="ll" style="background:#d97706"></span>Max (dashed)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRR & COVERAGE -->
+  <div id="view-drr" class="view">
+    <div class="filters">
+      <div class="search-wrap">
+        <span class="si"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input type="text" id="search-input" placeholder="Search packaging name or SKU…" oninput="renderDRRTable()"/>
+      </div>
+      <select id="status-filter" onchange="renderDRRTable()">
+        <option value="">All status</option>
+        <option value="ok">Healthy (&gt;90d)</option>
+        <option value="low">Low (30–90d)</option>
+        <option value="critical">Critical (&lt;30d)</option>
+        <option value="nodrr">No DRR data</option>
+      </select>
+      <select id="sort-select" onchange="renderDRRTable()">
+        <option value="drr30-desc">DRR 30d ↓</option>
+        <option value="drr30-asc">DRR 30d ↑</option>
+        <option value="coverage_days-asc">Coverage ↑ (worst first)</option>
+        <option value="pending_qty-desc">Pending Qty ↓</option>
+        <option value="gap_30d-asc">Gap 30d ↑</option>
+        <option value="gap_60d-asc">Gap 60d ↑</option>
+        <option value="req_60d-desc">60d Req ↓</option>
+      </select>
+      <!-- Period toggle for the table -->
+      <div class="period-toggle">
+        <button class="period-btn" onclick="setTablePeriod(30,this)">30d</button>
+        <button class="period-btn active" onclick="setTablePeriod(60,this)">60d</button>
+      </div>
+      <span class="rc" id="result-count"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-wrap"><table id="drr-table"></table></div>
+    </div>
+  </div>
+
+  <!-- OPEN POs -->
+  <div id="view-po" class="view">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <div class="section-title" style="margin:0;border:none;padding:0">Open PO line items — approved status</div>
+        <span id="po-badge" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+      <div class="tbl-wrap"><table id="po-table"></table></div>
+    </div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<script>
+
+// ── GOOGLE SHEETS AUTO-FETCH ───────────────────────────────────────────
+const SHEET_URLS = {
+  packaging_sku: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDGOHqhPe3f0rUHt3WMomxVBxDkMShdo5voWB_GEC0sMt06tSTt-VhyEA0nZFITERr6mfnCfIJzaOj/pub?gid=1016234001&single=true&output=csv',
+  products_drr:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0olbpjA5mHId19xwOqF6bHyXg4g4sNJCMNotEXkcU-7Hh5e8BHxWUapdYZb82mlYUoijVoF-ckmGx/pub?gid=4541055&single=true&output=csv',
+  wh_count:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-0FmrSdsG8mSedE4iMqsE_yY8RB4iQNCsVBGapwEUjjYM8aFsWMNcCfY_TFYeA4ZK6WPURtOsGIRS/pub?gid=0&single=true&output=csv',
+};
+const DESC_TO_PKC_MAP = {"Black Rigid Packaging Box": "PKC_0005", "Frame black box rigid packaging": "PKC_0035", "Selenite plate packaging rigid box": "PKC_0008", "Big Pyramid Box": "PKC_0007", "Small Pyramid Box": "PKC_0006", "Murti Box Packaging (Blue Box)": "PKC_0003", "Big Murti Box": "PKC_0068", "Small Murti Box": "PKC_0069", "Small Tortoise Rigid Box": "PKC_0067", "Big Frame Rigid Box": "PKC_0066", "Yantra Envelop Packaging Small 6*6": "PKC_0025", "Yantra Envelop Packaging Big 9*9": "PKC_0026", "Yantra Envelop Packaging Big Box 9*9": "PKC_0027", "Yantra Envelop Packaging Small Box 6*6": "PKC_0024", "Zodiac Packaging Box (Purple\u00a0Box)": "PKC_0016", "Medium Murti Box": "PKC_0017", "Khazani Oil Corrugated Box": "PKC_0039", "Lakhsmi Ganesh Rigid Packaging Box": "PKC_0042", "Rudraksha Paper Pouch 3.5*3.5": "PKC_0034", "Selenite Frame Packaging Box Medium": "PKC_0064", "Swastik Packaging Box": "PKC_0055", "Small Thread Pouch": "PKC_0029"};
+
+// CSV parser
+function parseCSVText(text) {
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
+  const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const row=[];let cur='',inQ=false;
+    for(const ch of lines[i]){if(ch==='"'){inQ=!inQ}else if(ch===','&&!inQ){row.push(cur.trim());cur=''}else{cur+=ch}}
+    row.push(cur.trim());
+    const obj={};
+    headers.forEach((h,idx)=>{ obj[h]=row[idx]||''; });
+    rows.push(obj);
+  }
+  return {headers,rows};
+}
+
+async function fetchCSVSheet(url) {
+  const sep=url.includes('?')?'&':'?';
+  const res = await fetch(url + sep + '_cache=' + Date.now(), {cache:'no-store',mode:'cors'});
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  if(text.trim().startsWith('<!')) throw new Error('Sheet not published publicly. Go to File → Share → Publish to web → CSV');
+  return parseCSVText(text);
+}
+
+async function fetchAllSheets() {
+  const btn = document.getElementById('refresh-btn');
+  const dot = document.getElementById('src-dot');
+  const txt = document.getElementById('src-text');
+  const overlay = document.getElementById('loading-overlay');
+
+  btn.disabled=true; btn.classList.add('spinning');
+  dot.className='src-dot loading';
+  txt.textContent='Fetching from Google Sheets…';
+  if(overlay) overlay.classList.remove('hidden');
+
+  try {
+    const [skuData, drrData, invData] = await Promise.all([
+      fetchCSVSheet(SHEET_URLS.packaging_sku),
+      fetchCSVSheet(SHEET_URLS.products_drr),
+      fetchCSVSheet(SHEET_URLS.wh_count),
+    ]);
+
+    rebuildFromSheets(skuData, drrData, invData);
+
+    dot.className='src-dot live';
+    txt.textContent='Live · Google Sheets · Updated ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('date-label').textContent=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    if(overlay) overlay.classList.add('hidden');
+
+  } catch(err) {
+    dot.className='src-dot error-state';
+    txt.textContent='Sheet fetch failed: ' + err.message;
+    if(overlay) overlay.classList.add('hidden');
+    alert('Failed to load Google Sheets data:\n' + err.message + '\n\nMake sure all sheets are published publicly.');
+  }
+  btn.disabled=false; btn.classList.remove('spinning');
+}
+
+function rebuildFromSheets(skuData, drrData, invData) {
+  const cleanNum = s => { const n=parseFloat(String(s||0).replace(/,/g,'').trim()); return isNaN(n)?0:n; };
+
+  // DRR lookup by product SKU
+  const drrMap = {};
+  drrData.rows.forEach(r => {
+    const skuKey = Object.keys(r).find(k=>/item.*sku|sku.*code/i.test(k)) || Object.keys(r)[0];
+    const sku = (r[skuKey]||'').trim();
+    if(!sku) return;
+    const d7k  = Object.keys(r).find(k=>/7.*day.*drr|drr.*7/i.test(k));
+    const d15k = Object.keys(r).find(k=>/15.*day.*drr|drr.*15/i.test(k));
+    const d30k = Object.keys(r).find(k=>/30.*day.*drr|drr.*30/i.test(k));
+    const dmk  = Object.keys(r).find(k=>/drr.*max|max.*drr/i.test(k));
+    drrMap[sku] = {
+      drr7:   cleanNum(d7k  ? r[d7k]  : 0),
+      drr15:  cleanNum(d15k ? r[d15k] : 0),
+      drr30:  cleanNum(d30k ? r[d30k] : 0),
+      drrMax: cleanNum(dmk  ? r[dmk]  : 0),
+    };
+  });
+
+  // WH Count inventory: find SKU col + last date col
+  const invHeaders = invData.headers;
+  const skuCol = invHeaders.find(h=>/sku|code/i.test(h)) || invHeaders[0];
+  const invMap = {};
+  invData.rows.forEach(r => {
+    const sku = (r[skuCol]||'').trim();
+    if(!sku) return;
+    // Last non-null numeric column = latest inventory
+    let latest = 0;
+    for(let i=invHeaders.length-1;i>=0;i--){
+      const h=invHeaders[i];
+      if(h===skuCol || h===invHeaders[1]) continue;
+      const v=cleanNum(r[h]);
+      if(!isNaN(v)){ latest=v; break; }
+    }
+    invMap[sku] = (invMap[sku]||0) + latest;
+  });
+
+  // Aggregate DRR per packaging description
+  const pkgMap = {};
+  skuData.rows.forEach(r => {
+    const descKey = Object.keys(r).find(k=>/packaging.*desc|description/i.test(k)) || 'Packaging description';
+    const skuKey  = Object.keys(r).find(k=>/item.*sku|product.*sku/i.test(k)) || 'Item SKU Code';
+    const desc = (r[descKey]||'').trim();
+    const prod = (r[skuKey]||'').trim();
+    if(!desc||!prod) return;
+    if(!pkgMap[desc]) pkgMap[desc]={drr7:0,drr15:0,drr30:0,drrMax:0,count:0};
+    const d=drrMap[prod];
+    if(d){pkgMap[desc].drr7+=d.drr7;pkgMap[desc].drr15+=d.drr15;pkgMap[desc].drr30+=d.drr30;pkgMap[desc].drrMax+=d.drrMax;}
+    pkgMap[desc].count++;
+  });
+
+  // Open PO summary (hardcoded from Uniware)
+  const poSummary={};
+  PO_DETAIL.filter(p=>p.Pending_Quantity>0||(p['Pending Quantity']>0)).forEach(p=>{
+    const pq = p['Pending Quantity']||p.Pending_Quantity||0;
+    if(!pq) return;
+    const k=p['Item SkuCode']||p.Item_SkuCode;
+    if(!k) return;
+    if(!poSummary[k])poSummary[k]={pending:0,pos:new Set(),vendors:new Set(),item_name:p['Item Type Name']||''};
+    poSummary[k].pending+=pq;
+    poSummary[k].pos.add(p['PO Code']);
+    const vn=(p['Vendor Name']||'').replace(' PRIVATE LIMITED','').replace(' Private Limited','');
+    poSummary[k].vendors.add(vn);
+  });
+
+  // Unit prices from PO
+  const uPrices={};
+  PO_DETAIL.forEach(p=>{const k=p['Item SkuCode']||p.Item_SkuCode;if(k){if(!uPrices[k])uPrices[k]=[];uPrices[k].push(p['Unit Price']||0);}});
+  const avgPrice = k => uPrices[k]?(uPrices[k].reduce((a,b)=>a+b,0)/uPrices[k].length):0;
+
+  // Build ITEMS
+  ITEMS = Object.entries(pkgMap).map(([desc,dr])=>{
+    const pkc = DESC_TO_PKC_MAP[desc]||'—';
+    const inv = invMap[pkc]||0;
+    const po  = poSummary[pkc]||{pending:0,pos:new Set(),vendors:new Set(),item_name:desc};
+    const up  = avgPrice(pkc);
+    const drrMax=Math.round(dr.drrMax),drr30=Math.round(dr.drr30);
+    const pending=po.pending||0;
+    const cov=drrMax>0?Math.round((inv/drrMax)*10)/10:null;
+    const totalAvail=inv+pending;
+    return {
+      pkg_desc:desc,pkc_sku:pkc,product_count:dr.count,
+      drr7:Math.round(dr.drr7),drr15:Math.round(dr.drr15),drr30,drrMax,
+      pkg_inventory:inv,pending_qty:pending,
+      open_pos:po.pos.size,vendors:[...po.vendors].join(' / ')||'—',item_name:po.item_name,
+      unit_price:Math.round(up*100)/100,
+      req_30d:drr30*30,req_60d:drr30*60,
+      val_30d:Math.round(drr30*30*up*100)/100,val_60d:Math.round(drr30*60*up*100)/100,
+      coverage_days:cov,gap_30d:totalAvail-drr30*30,gap_60d:totalAvail-drr30*60,doc:cov!==null?cov:999,
+    };
+  }).sort((a,b)=>b.drrMax-a.drrMax);
+
+  renderAll();
+}
+
+// Auto-refresh every 30 min
+setInterval(fetchAllSheets, 30*60*1000);
+
+
+const EMBEDDED = [{"pkg_desc": "Big Murti Box", "pkc_sku": "PKC_0068", "product_count": 3, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 4022, "item_name": "Big Murti Rigid Box", "open_pos": 1, "pending_qty": 0, "total_ordered": 3000, "total_received": 3000, "unit_price": 54.0, "vendors": "BOXOPEDIA PRIVATE LIMITED", "req_30d": 0, "req_60d": 0, "val_30d": 0.0, "val_60d": 0.0, "coverage_days": null, "gap_30d": 4022, "gap_60d": 4022, "doc": 999}, {"pkg_desc": "Big Pyramid Box", "pkc_sku": "PKC_0007", "product_count": 23, "drr7": 65, "drr15": 72, "drr30": 102, "drrMax": 103, "pkg_inventory": 6300, "item_name": "Big Pyramid Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 3060, "req_60d": 6120, "val_30d": 0, "val_60d": 0, "coverage_days": 61.2, "gap_30d": 3240, "gap_60d": 180, "doc": 61.2}, {"pkg_desc": "Black Rigid Packaging Box", "pkc_sku": "PKC_0005", "product_count": 360, "drr7": 3033, "drr15": 3213, "drr30": 3676, "drrMax": 3779, "pkg_inventory": 40011, "item_name": "Black Rigid Packaging Box", "open_pos": 4, "pending_qty": 124762, "total_ordered": 300000, "total_received": 175238, "unit_price": 15.47, "vendors": "BOXOPEDIA PRIVATE LIMITED / Elite Pack Works Private Limited / MJ GLOBAL PRIVATE LIMITED", "req_30d": 110280, "req_60d": 220560, "val_30d": 1706031.6, "val_60d": 3412063.2, "coverage_days": 10.6, "gap_30d": 54493, "gap_60d": -55787, "doc": 10.6}, {"pkg_desc": "Frame black box rigid packaging", "pkc_sku": "PKC_0035", "product_count": 29, "drr7": 199, "drr15": 267, "drr30": 454, "drrMax": 455, "pkg_inventory": 42724, "item_name": "Frame black box rigid packaging", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 13620, "req_60d": 27240, "val_30d": 0, "val_60d": 0, "coverage_days": 93.9, "gap_30d": 29104, "gap_60d": 15484, "doc": 93.9}, {"pkg_desc": "Khazani Oil Corrugated Box", "pkc_sku": "PKC_0039", "product_count": 3, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Khazani Oil Corrugated Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Lakhsmi Ganesh Rigid Packaging Box", "pkc_sku": "PKC_0042", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 422, "item_name": "Lakhsmi Ganesh Rigid Packaging Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 422, "gap_60d": 422, "doc": 999}, {"pkg_desc": "Medium Murti Box", "pkc_sku": "PKC_0017", "product_count": 20, "drr7": 7, "drr15": 7, "drr30": 10, "drrMax": 10, "pkg_inventory": 300, "item_name": "Medium Murti Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 300, "req_60d": 600, "val_30d": 0, "val_60d": 0, "coverage_days": 30.0, "gap_30d": 0, "gap_60d": -300, "doc": 30.0}, {"pkg_desc": "Murti Box Packaging (Blue Box)", "pkc_sku": "PKC_0003", "product_count": 9, "drr7": 4, "drr15": 3, "drr30": 4, "drrMax": 5, "pkg_inventory": 500, "item_name": "Murti Box Packaging (Blue Box)", "open_pos": 1, "pending_qty": 31, "total_ordered": 1000, "total_received": 969, "unit_price": 47.0, "vendors": "Elite Pack Works Private Limited", "req_30d": 120, "req_60d": 240, "val_30d": 5640.0, "val_60d": 11280.0, "coverage_days": 100.0, "gap_30d": 411, "gap_60d": 291, "doc": 100.0}, {"pkg_desc": "Rudraksha Paper Pouch 3.5*3.5", "pkc_sku": "PKC_0034", "product_count": 1, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 7400, "item_name": "Rudraksha Paper Pouch 3.5*3.5", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 7400, "gap_60d": 7400, "doc": 999}, {"pkg_desc": "Selenite Frame Packaging Box Medium", "pkc_sku": "PKC_0064", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Selenite Frame Packaging Box Medium", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Selenite plate packaging rigid box", "pkc_sku": "PKC_0008", "product_count": 22, "drr7": 1920, "drr15": 2578, "drr30": 2010, "drrMax": 2579, "pkg_inventory": 7480, "item_name": "Selenite plate packaging rigid box", "open_pos": 3, "pending_qty": 65389, "total_ordered": 110000, "total_received": 44611, "unit_price": 15.2, "vendors": "BOXOPEDIA PRIVATE LIMITED / Elite Pack Works Private Limited", "req_30d": 60300, "req_60d": 120600, "val_30d": 916560.0, "val_60d": 1833120.0, "coverage_days": 2.9, "gap_30d": 12569, "gap_60d": -47731, "doc": 2.9}, {"pkg_desc": "Small Murti Box", "pkc_sku": "PKC_0069", "product_count": 5, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 2592, "item_name": "Small Murti Rigid Box", "open_pos": 1, "pending_qty": 256, "total_ordered": 4000, "total_received": 3744, "unit_price": 24.5, "vendors": "BOXOPEDIA PRIVATE LIMITED", "req_30d": 0, "req_60d": 0, "val_30d": 0.0, "val_60d": 0.0, "coverage_days": null, "gap_30d": 2848, "gap_60d": 2848, "doc": 999}, {"pkg_desc": "Small Pyramid Box", "pkc_sku": "PKC_0006", "product_count": 46, "drr7": 66, "drr15": 66, "drr30": 78, "drrMax": 78, "pkg_inventory": 300, "item_name": "Small Pyramid Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 2340, "req_60d": 4680, "val_30d": 0, "val_60d": 0, "coverage_days": 3.8, "gap_30d": -2040, "gap_60d": -4380, "doc": 3.8}, {"pkg_desc": "Small Thread Pouch", "pkc_sku": "PKC_0029", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Small Thread Pouch", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Swastik Packaging Box", "pkc_sku": "PKC_0055", "product_count": 2, "drr7": 5, "drr15": 5, "drr30": 5, "drrMax": 6, "pkg_inventory": 650, "item_name": "Swastik Packaging Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 150, "req_60d": 300, "val_30d": 0, "val_60d": 0, "coverage_days": 108.3, "gap_30d": 500, "gap_60d": 350, "doc": 108.3}, {"pkg_desc": "Yantra Envelop Packaging Big 9*9", "pkc_sku": "PKC_0026", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 300, "item_name": "Yantra Envelop Packaging Big 9*9", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 300, "gap_60d": 300, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Big Box 9*9", "pkc_sku": "PKC_0027", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 3000, "item_name": "Yantra Envelop Packaging Big Box 9*9", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 3000, "gap_60d": 3000, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Small 6*6", "pkc_sku": "PKC_0025", "product_count": 13, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 5300, "item_name": "Yantra Envelop Packaging Small 6*6", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 5300, "gap_60d": 5300, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Small Box 6*6", "pkc_sku": "PKC_0024", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Yantra Envelop Packaging Small Box 6*6", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Zodiac Packaging Box (Purple\u00a0Box)", "pkc_sku": "PKC_0016", "product_count": 12, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 120, "item_name": "Zodiac Packaging Box (Purple\u00a0Box)", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 120, "gap_60d": 120, "doc": 999}];
+const EMBEDDED_PO = [{"PO Code": "POFZP1583", "Created": "20 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 50000.0, "Recieved Quantity": 44611.0, "Pending Quantity": 5389.0, "Unit Price": 15.3, "Total": 803250.0, "Delivery Date": "25 Jun 2026"}, {"PO Code": "POFZP1584", "Created": "20 Mar 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 50000.0, "Recieved Quantity": 32043.0, "Pending Quantity": 17957.0, "Unit Price": 15.0, "Total": 787500.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1596", "Created": "24 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0003", "Item Type Name": "Murti Box Packaging (Blue Box)", "Order Quantity": 1000.0, "Recieved Quantity": 969.0, "Pending Quantity": 31.0, "Unit Price": 47.0, "Total": 49350.0, "Delivery Date": "30 Apr 2026"}, {"PO Code": "POFZP1597", "Created": "24 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 100000.0, "Recieved Quantity": 97015.0, "Pending Quantity": 2985.0, "Unit Price": 15.65, "Total": 1643250.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1677", "Created": "15 Apr 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0066", "Item Type Name": "Big Frame Rigid Box", "Order Quantity": 2000.0, "Recieved Quantity": 1093.0, "Pending Quantity": 907.0, "Unit Price": 110.0, "Total": 231000.0, "Delivery Date": "31 May 2026"}, {"PO Code": "POFZP1677", "Created": "15 Apr 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "CF_0029_GC", "Item Type Name": "Bracelet Card", "Order Quantity": 5500.0, "Recieved Quantity": 5500.0, "Pending Quantity": 0.0, "Unit Price": 0.6, "Total": 3465.0, "Delivery Date": "31 May 2026"}, {"PO Code": "POFZP1681", "Created": "16 Apr 2026", "Vendor Name": "MJ GLOBAL PRIVATE LIMITED", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 50000.0, "Recieved Quantity": 46180.0, "Pending Quantity": 3820.0, "Unit Price": 16.25, "Total": 853125.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1764", "Created": "07 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0068", "Item Type Name": "Big Murti Rigid Box", "Order Quantity": 3000.0, "Recieved Quantity": 3000.0, "Pending Quantity": 0.0, "Unit Price": 54.0, "Total": 170100.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1764", "Created": "07 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0069", "Item Type Name": "Small Murti Rigid Box", "Order Quantity": 4000.0, "Recieved Quantity": 3744.0, "Pending Quantity": 256.0, "Unit Price": 24.5, "Total": 102900.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1790", "Created": "12 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0071", "Item Type Name": "Cavity", "Order Quantity": 2000.0, "Recieved Quantity": 0.0, "Pending Quantity": 2000.0, "Unit Price": 1.5, "Total": 3150.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1790", "Created": "12 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0067", "Item Type Name": "Small Tortoise Rigid Box", "Order Quantity": 20000.0, "Recieved Quantity": 11930.0, "Pending Quantity": 8070.0, "Unit Price": 15.0, "Total": 315000.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1806", "Created": "14 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0085", "Item Type Name": "2 Tortoise Rigid Combo Box", "Order Quantity": 4000.0, "Recieved Quantity": 0.0, "Pending Quantity": 4000.0, "Unit Price": 26.35, "Total": 110670.0, "Delivery Date": "29 Jun 2026"}, {"PO Code": "POFZP1828", "Created": "19 May 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 100000.0, "Recieved Quantity": 0.0, "Pending Quantity": 100000.0, "Unit Price": 15.0, "Total": 1575000.0, "Delivery Date": "30 Jul 2026"}, {"PO Code": "POFZP1829", "Created": "19 May 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 50000.0, "Recieved Quantity": 0.0, "Pending Quantity": 50000.0, "Unit Price": 15.3, "Total": 803250.0, "Delivery Date": "30 Jul 2026"}, {"PO Code": "POFZP1834", "Created": "20 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "CF_0029_GC", "Item Type Name": "Bracelet Card", "Order Quantity": 100000.0, "Recieved Quantity": 18600.0, "Pending Quantity": 81400.0, "Unit Price": 0.6, "Total": 63000.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1875", "Created": "28 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 10000.0, "Recieved Quantity": 0.0, "Pending Quantity": 10000.0, "Unit Price": 15.0, "Total": 157500.0, "Delivery Date": "30 Jun 2026"}];
+let ITEMS = EMBEDDED.map(i=>({...i}));
+let PO_DETAIL = EMBEDDED_PO.map(r=>({...r}));
+let dataSource = 'embedded';
+let dataFileName = 'Built-in data';
+let expandedRow = null;
+let pendingParsed = null;
+let tablePeriod = 60;
+let overviewPeriod = 60;
+const charts = {};
+const REQUIRED_COLS = ['Item SKU Code','Packaging description','Name'];
+
+const fmt = n => Math.round(n).toLocaleString('en-IN');
+const fmtK = n => n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':String(Math.round(n));
+const fmtC = n => n>=10000000?'₹'+(n/10000000).toFixed(2)+'Cr':n>=100000?'₹'+(n/100000).toFixed(1)+'L':'₹'+fmt(n);
+const cleanNum = s => { const n=parseFloat(String(s||0).replace(/,/g,'').trim()); return isNaN(n)?0:n; };
+
+function covSt(i){
+  if(i.drr30===0) return 'nodrr';
+  const d=i.coverage_days;
+  if(d===null||d===0) return 'critical';
+  if(d>=90) return 'ok'; if(d>=30) return 'low'; return 'critical';
+}
+const covColor = i=>({ok:'#16a34a',low:'#d97706',critical:'#dc2626',nodrr:'#9ca3af'})[covSt(i)];
+const covLabel = i=>({ok:'Healthy',low:'Low stock',critical:'Critical',nodrr:'No DRR data'})[covSt(i)];
+function badge(i){
+  const s=covSt(i),c={ok:'badge-ok',low:'badge-low',critical:'badge-critical',nodrr:'badge-nodrr'}[s];
+  return `<span class="badge ${c}">${covLabel(i)}</span>`;
+}
+
+Chart.defaults.color='#6b7280';
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.font.size=11;
+const TP={backgroundColor:'#fff',borderColor:'rgba(0,0,0,0.12)',borderWidth:1,titleColor:'#374151',bodyColor:'#111827',padding:10,cornerRadius:8,callbacks:{label:ctx=>' '+fmt(ctx.raw)}};
+function mkChart(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),cfg);}
+
+// ── VIEW ──────────────────────────────────────────────────
+function switchView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');btn.classList.add('active');
+}
+
+// ── PERIOD TOGGLES ────────────────────────────────────────
+function setOverviewPeriod(p,btn){
+  overviewPeriod=p;
+  document.querySelectorAll('.period-btn').forEach(b=>{ if(b.closest('#view-overview')) b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderReqChart();
+}
+function setTablePeriod(p,btn){
+  tablePeriod=p;
+  document.querySelectorAll('.period-btn').forEach(b=>{ if(b.closest('#view-drr')) b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderDRRTable();
+}
+
+// ── META ──────────────────────────────────────────────────
+function getMeta(){
+  return {
+    total:ITEMS.length, withDrr:ITEMS.filter(i=>i.drr30>0).length,
+    totalPending:ITEMS.reduce((a,i)=>a+i.pending_qty,0),
+    totalReq30:ITEMS.reduce((a,i)=>a+i.req_30d,0),
+    totalReq60:ITEMS.reduce((a,i)=>a+i.req_60d,0),
+    totalVal30:ITEMS.reduce((a,i)=>a+i.val_30d,0),
+    totalVal60:ITEMS.reduce((a,i)=>a+i.val_60d,0),
+    critical:ITEMS.filter(i=>covSt(i)==='critical').length,
+    low:ITEMS.filter(i=>covSt(i)==='low').length,
+    ok:ITEMS.filter(i=>covSt(i)==='ok').length,
+    nodrr:ITEMS.filter(i=>covSt(i)==='nodrr').length,
+    openPos:new Set(PO_DETAIL.map(p=>p['PO Code'])).size,
+    totalPkgInv:ITEMS.reduce((a,i)=>a+i.pkg_inventory,0),
+  };
+}
+
+// ── UPLOAD ────────────────────────────────────────────────
+function openUpload(){document.getElementById('overlay').classList.remove('hidden');resetModal();}
+function closeUpload(){document.getElementById('overlay').classList.add('hidden');pendingParsed=null;}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeUpload();}
+function resetModal(){
+  document.getElementById('file-name-label').textContent='No file selected';
+  document.getElementById('col-preview').style.display='none';
+  document.getElementById('modal-status').className='modal-status';
+  document.getElementById('load-btn').disabled=true;
+  document.getElementById('file-input').value='';pendingParsed=null;
+}
+function handleDragOver(e){e.preventDefault();document.getElementById('dropzone').classList.add('drag-over');}
+function handleDragLeave(){document.getElementById('dropzone').classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();handleDragLeave();const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function handleFile(e){const f=e.target.files[0];if(f)processFile(f);}
+function processFile(file){
+  if(!file.name.endsWith('.csv')){showStatus('Please upload a .csv file','err');return;}
+  document.getElementById('file-name-label').textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const result=parseCSV(e.target.result);
+    if(result.error){showStatus(result.error,'err');return;}
+    pendingParsed=result;
+    showColPreview(result.headers);
+    showStatus(`✓ ${result.rows.length} rows in "${file.name}" — click Load data to apply`,'ok');
+    document.getElementById('load-btn').disabled=false;
+    dataFileName=file.name;
+  };
+  reader.readAsText(file);
+}
+function parseCSV(text){
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  const missing=REQUIRED_COLS.filter(c=>!headers.includes(c));
+  if(missing.length) return{error:'Missing columns: '+missing.join(', ')};
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const row=[];let cur='',inQ=false;
+    for(const ch of lines[i]){if(ch==='"'){inQ=!inQ}else if(ch===','&&!inQ){row.push(cur.trim());cur=''}else{cur+=ch}}
+    row.push(cur.trim());
+    const get=col=>row[headers.indexOf(col)]||'';
+    rows.push({sku:get('Item SKU Code'),pkg_desc:get('Packaging description'),name:get('Name')});
+  }
+  return{rows,headers};
+}
+function showColPreview(headers){
+  document.getElementById('col-grid').innerHTML=REQUIRED_COLS.map(col=>{
+    const found=headers.includes(col);
+    return `<div class="col-row"><span>${col}</span><span class="${found?'col-ok':'col-miss'}">${found?'✓ found':'✗ missing'}</span></div>`;
+  }).join('');
+  document.getElementById('col-preview').style.display='block';
+}
+function showStatus(msg,type){
+  const el=document.getElementById('modal-status');el.textContent=msg;el.className='modal-status '+type;
+}
+function loadCSV(){
+  if(!pendingParsed) return;
+  dataSource='csv';closeUpload();
+  document.getElementById('src-dot').className='src-dot live';
+  document.getElementById('src-text').textContent='Live data · '+dataFileName;
+  document.getElementById('date-label').textContent=dataFileName;
+}
+
+// ── SOURCE BANNER update ──────────────────────────────────
+function updateBanner(){
+  document.getElementById('src-dot').className=dataSource==='csv'?'src-dot live':'src-dot embedded';
+  document.getElementById('src-text').textContent=dataSource==='csv'?'Live data · '+dataFileName:'Built-in data · 28 May 2026 · Upload CSV to refresh';
+}
+
+// ── METRIC CARDS ──────────────────────────────────────────
+function renderMetricCards(){
+  const m=getMeta();
+  const cards=[
+    {icon:'📦',label:'Packaging types',val:m.total,sub:m.withDrr+' with DRR data',color:'var(--teal)'},
+    {icon:'🗂',label:'Open POs',val:m.openPos,sub:'Approved status',color:'var(--blue)'},
+    {icon:'🏭',label:'Pkg inventory',val:fmtK(m.totalPkgInv),sub:'Total received (all POs)',color:'var(--teal)'},
+    {icon:'⏳',label:'Total pending qty',val:fmtK(m.totalPending),sub:'Units in open POs',color:'var(--purple)'},
+    {icon:'📅',label:'30-day requirement',val:fmtK(m.totalReq30),sub:fmtC(m.totalVal30)+' value',color:'var(--orange)'},
+    {icon:'📆',label:'60-day requirement',val:fmtK(m.totalReq60),sub:fmtC(m.totalVal60)+' value',color:'var(--amber)'},
+    {icon:'✅',label:'Healthy',val:m.ok,sub:'>90 days cover',color:'var(--green)'},
+    {icon:'⚠️',label:'Low / Critical',val:m.low+m.critical,sub:'Under 90 days',color:'var(--red)'},
+  ];
+  document.getElementById('metric-grid').innerHTML=cards.map(c=>`
+    <div class="mcard">
+      <div class="mcard-top"><span style="font-size:15px">${c.icon}</span><span class="mcard-label">${c.label}</span></div>
+      <div class="mcard-val" style="color:${c.color}">${c.val}</div>
+      <div class="mcard-sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+// ── CHARTS ────────────────────────────────────────────────
+function renderCharts(){
+  const m=getMeta();
+  // Pie
+  const pd=[{l:'Healthy (>90d)',v:m.ok,c:'#16a34a'},{l:'Low (30–90d)',v:m.low,c:'#d97706'},{l:'Critical (<30d)',v:m.critical,c:'#dc2626'},{l:'No DRR data',v:m.nodrr,c:'#d1d5db'}].filter(p=>p.v>0);
+  mkChart('pieChart',{type:'doughnut',data:{labels:pd.map(p=>p.l),datasets:[{data:pd.map(p=>p.v),backgroundColor:pd.map(p=>p.c),borderWidth:2,borderColor:'#fff',hoverOffset:4}]},options:{cutout:'62%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TP,callbacks:{label:ctx=>` ${ctx.raw} types`}}}}});
+  document.getElementById('pie-legend').innerHTML=pd.map(p=>`<div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:2px;background:${p.c};flex-shrink:0"></div><div><div style="font-size:12px;font-weight:600;color:var(--text)">${p.v}</div><div style="font-size:10px;color:var(--text3)">${p.l}</div></div></div>`).join('');
+
+  // DRR bar
+  const drrItems=ITEMS.filter(i=>i.drr30>0).sort((a,b)=>b.drr30-a.drr30);
+  mkChart('drrBarChart',{type:'bar',data:{labels:drrItems.map(i=>i.pkc_sku!=='—'?i.pkc_sku:i.pkg_desc.substring(0,16)),datasets:[{data:drrItems.map(i=>i.drr30),backgroundColor:drrItems.map(i=>covColor(i)),borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TP,callbacks:{label:ctx=>' '+fmt(ctx.raw)+' units/day'}}},scales:{x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>fmtK(v)},border:{display:false}},y:{grid:{display:false},ticks:{font:{family:"'DM Mono',monospace",size:10},color:'var(--teal)'},border:{display:false}}}}});
+
+  // PO pending bar
+  const poItems=ITEMS.filter(i=>i.pending_qty>0).sort((a,b)=>b.pending_qty-a.pending_qty);
+  mkChart('poBarChart',{type:'bar',data:{labels:poItems.map(i=>i.pkc_sku!=='—'?i.pkc_sku:i.pkg_desc.substring(0,16)),datasets:[{data:poItems.map(i=>i.pending_qty),backgroundColor:'#7c3aed',borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TP},scales:{x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>fmtK(v)},border:{display:false}},y:{grid:{display:false},ticks:{font:{family:"'DM Mono',monospace",size:10},color:'var(--teal)'},border:{display:false}}}}});
+
+  // Req vs pending (period-driven)
+  renderReqChart();
+
+  // Trend
+  const tItems=ITEMS.filter(i=>i.drr30>0).sort((a,b)=>b.drrMax-a.drrMax);
+  mkChart('trendChart',{type:'line',data:{labels:tItems.map(i=>i.pkc_sku!=='—'?i.pkc_sku:i.pkg_desc.substring(0,12)),datasets:[{label:'7d',data:tItems.map(i=>i.drr7),borderColor:'#2563eb',borderWidth:2,pointRadius:3,pointBackgroundColor:'#2563eb',tension:.3},{label:'15d',data:tItems.map(i=>i.drr15),borderColor:'#7c3aed',borderWidth:2,pointRadius:3,pointBackgroundColor:'#7c3aed',tension:.3},{label:'30d',data:tItems.map(i=>i.drr30),borderColor:'#0d9488',borderWidth:2,pointRadius:3,pointBackgroundColor:'#0d9488',tension:.3},{label:'Max',data:tItems.map(i=>i.drrMax),borderColor:'#d97706',borderWidth:2,pointRadius:3,pointBackgroundColor:'#d97706',tension:.3,borderDash:[4,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TP},scales:{x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{color:'#0d9488',font:{family:"'DM Mono',monospace",size:9},maxRotation:45},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>fmtK(v)},border:{display:false}}}}});
+}
+
+function renderReqChart(){
+  const reqKey = overviewPeriod===30?'req_30d':'req_60d';
+  const rItems=ITEMS.filter(i=>i[reqKey]>0||i.pending_qty>0).sort((a,b)=>b[reqKey]-a[reqKey]);
+  const label = overviewPeriod+'d Req';
+  mkChart('req6mChart',{type:'bar',data:{labels:rItems.map(i=>i.pkc_sku!=='—'?i.pkc_sku:i.pkg_desc.substring(0,12)),datasets:[{label,data:rItems.map(i=>i[reqKey]),backgroundColor:'rgba(220,38,38,0.45)',borderRadius:4,borderSkipped:false},{label:'Pending PO',data:rItems.map(i=>i.pending_qty),backgroundColor:'rgba(22,163,74,0.55)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TP},scales:{x:{grid:{display:false},ticks:{maxRotation:45,font:{family:"'DM Mono',monospace",size:9}},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>fmtK(v)},border:{display:false}}}}});
+}
+
+// ── EXPAND ROW ────────────────────────────────────────────
+function buildExpandHTML(item){
+  const poRows=PO_DETAIL.filter(p=>p['Item SkuCode']===item.pkc_sku);
+  const c=covColor(item),pct=item.coverage_days!==null?Math.min(100,(item.coverage_days/90)*100):100;
+  const g30=item.gap_30d, g60=item.gap_60d;
+  let poHTML='';
+  if(poRows.length>0){
+    poHTML=`<div class="exp-section-title">Open PO line items</div>
+    <table class="po-mini"><thead><tr>
+      <th>PO Code</th><th>Vendor</th>
+      <th style="text-align:right">Order Qty</th><th style="text-align:right">Received</th>
+      <th style="text-align:right">Pending</th><th style="text-align:right">Unit Price</th>
+      <th style="text-align:right">Value</th><th>Delivery</th>
+    </tr></thead><tbody>`;
+    poRows.forEach(r=>{
+      poHTML+=`<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--teal)">${r['PO Code']}</td>
+        <td>${r['Vendor Name'].replace(' PRIVATE LIMITED','').replace(' Private Limited','')}</td>
+        <td style="text-align:right">${fmt(r['Order Quantity'])}</td>
+        <td style="text-align:right;color:var(--teal)">${fmt(r['Recieved Quantity'])}</td>
+        <td style="text-align:right;color:${r['Pending Quantity']>0?'var(--amber)':'var(--text3)'};font-weight:${r['Pending Quantity']>0?600:400}">${fmt(r['Pending Quantity'])}</td>
+        <td style="text-align:right">₹${r['Unit Price'].toFixed(2)}</td>
+        <td style="text-align:right">₹${fmt(r['Total'])}</td>
+        <td style="color:var(--text3)">${r['Delivery Date']}</td>
+      </tr>`;
+    });
+    const totP=poRows.reduce((a,r)=>a+r['Pending Quantity'],0);
+    const totV=poRows.reduce((a,r)=>a+r['Total'],0);
+    poHTML+=`<tr style="background:var(--bg3);font-weight:600"><td colspan="4" style="color:var(--text2)">Total (${poRows.length} POs)</td><td style="text-align:right;color:var(--amber)">${fmt(totP)}</td><td></td><td style="text-align:right">₹${fmt(totV)}</td><td></td></tr></tbody></table>`;
+  } else {
+    poHTML=`<div style="font-size:12px;color:var(--text3);padding:10px 0">No open POs for this packaging type</div>`;
+  }
+
+  return `<div class="expand-inner">
+    <div>
+      <div class="exp-section-title">DRR breakdown</div>
+      <div class="drr-grid">
+        <div class="drr-box"><div class="dbl">DRR 7-day</div><div class="dbv">${fmt(item.drr7)}</div></div>
+        <div class="drr-box"><div class="dbl">DRR 15-day</div><div class="dbv">${fmt(item.drr15)}</div></div>
+        <div class="drr-box hl"><div class="dbl">DRR 30-day</div><div class="dbv">${fmt(item.drr30)}</div></div>
+        <div class="drr-box"><div class="dbl">DRR Max</div><div class="dbv">${fmt(item.drrMax)}</div></div>
+      </div>
+      <div class="exp-section-title" style="margin-top:4px">Requirement by period</div>
+      <div class="req-grid">
+        <div class="req-box ${tablePeriod===30?'active-period':''}">
+          <div class="rbl">30-day req</div>
+          <div class="rbv" style="color:var(--orange)">${fmt(item.req_30d)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtC(item.val_30d)}</div>
+        </div>
+        <div class="req-box ${tablePeriod===60?'active-period':''}">
+          <div class="rbl">60-day req</div>
+          <div class="rbv" style="color:var(--amber)">${fmt(item.req_60d)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtC(item.val_60d)}</div>
+        </div>
+        <div class="req-box">
+          <div class="rbl">Pending PO</div>
+          <div class="rbv" style="color:var(--purple)">${fmt(item.pending_qty)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">in open POs</div>
+        </div>
+        <div class="req-box" style="grid-column:1/-1;background:var(--blue-dim);border-color:var(--blue-mid)">
+          <div class="rbl" style="color:var(--blue)">Total available (Inv + Pending PO)</div>
+          <div class="rbv" style="color:var(--blue)">${fmt(item.pkg_inventory + item.pending_qty)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">Inventory cover = ${item.coverage_days !== null ? item.coverage_days + 'd' : 'N/A'} (Inventory ÷ DRR Max ${fmt(item.drrMax)})</div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sbl">Pkg inventory</div><div class="sbv" style="color:var(--teal)">${fmt(item.pkg_inventory)}</div></div>
+        <div class="stat-box"><div class="sbl">Gap (Inv+PO vs 30d)</div><div class="sbv" style="color:${g30>=0?'var(--green)':'var(--red)'}">${(g30>=0?'+':'')+fmt(g30)}</div></div>
+        <div class="stat-box"><div class="sbl">Gap (Inv+PO vs 60d)</div><div class="sbv" style="color:${g60>=0?'var(--green)':'var(--red)'}">${(g60>=0?'+':'')+fmt(g60)}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between">
+        <span>PO coverage</span>
+        <span style="color:${c};font-weight:600">${item.coverage_days!==null?item.coverage_days+'d':'No DRR data'}</span>
+      </div>
+      <div class="cov-bar-bg"><div class="cov-bar-fill" style="width:${pct}%;background:${c}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px"><span>0</span><span>90d</span></div>
+      ${item.vendors!=='—'?`<div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.7">
+        <b style="color:var(--text2)">Vendor(s):</b> ${item.vendors}<br>
+        <b style="color:var(--text2)">Unit price:</b> ₹${item.unit_price.toFixed(2)} &nbsp;·&nbsp; <b style="color:var(--text2)">Mapped SKUs:</b> ${item.product_count}
+      </div>`:''}
+    </div>
+    <div>${poHTML}</div>
+  </div>`;
+}
+
+function toggleRow(desc){expandedRow=expandedRow===desc?null:desc;renderDRRTable();}
+
+// ── DRR TABLE ─────────────────────────────────────────────
+function renderDRRTable(){
+  const search=document.getElementById('search-input').value.toLowerCase();
+  const stF=document.getElementById('status-filter').value;
+  const[sk,sd]=document.getElementById('sort-select').value.split('-');
+  let data=ITEMS.filter(i=>{
+    if(search&&!i.pkg_desc.toLowerCase().includes(search)&&!i.pkc_sku.toLowerCase().includes(search)) return false;
+    if(stF&&covSt(i)!==stF) return false;
+    return true;
+  }).sort((a,b)=>{const va=a[sk]??0,vb=b[sk]??0;return sd==='asc'?va-vb:vb-va;});
+
+  document.getElementById('result-count').textContent=data.length+' results';
+
+  const reqKey=tablePeriod===30?'req_30d':'req_60d';
+  const valKey=tablePeriod===30?'val_30d':'val_60d';
+  const gapKey=tablePeriod===30?'gap_30d':'gap_60d';
+  const periodLabel=tablePeriod+'d';
+  const periodColor=tablePeriod===30?'var(--orange)':'var(--amber)';
+
+  let html=`<thead><tr>
+    <th style="width:28px"></th>
+    <th>PKC SKU</th><th>Packaging description</th>
+    <th class="num">DRR 7d</th><th class="num">DRR 15d</th>
+    <th class="num" style="color:var(--blue)">DRR 30d</th>
+    <th class="num">DRR Max</th>
+    <th class="num" style="color:var(--teal)">Pkg Inventory</th>
+    <th class="num" style="color:${periodColor}">${periodLabel} Req</th>
+    <th class="num">Unit Price</th>
+    <th class="num" style="color:${periodColor}">${periodLabel} Value</th>
+    <th class="num">Pending PO</th>
+    <th class="num">Inv Cover (÷DRR Max)</th>
+    <th class="num">Gap (Inv+PO vs ${periodLabel})</th>
+    <th>Status</th>
+  </tr></thead><tbody>`;
+
+  data.forEach((item,ri)=>{
+    const isExp=expandedRow===item.pkg_desc;
+    const c=covColor(item);
+    const gap=item[gapKey],gStr=(gap>=0?'+':'')+fmt(gap);
+    html+=`<tr class="${isExp?'expanded-row':ri%2===0?'':'alt'}" onclick="toggleRow('${item.pkg_desc.replace(/'/g,"\\'")}')">
+      <td style="text-align:center;color:var(--text3);font-size:13px;font-weight:500">${isExp?'▾':'▸'}</td>
+      <td class="mono">${item.pkc_sku}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${item.pkg_desc}">${item.pkg_desc}</td>
+      <td class="num" style="color:var(--text2)">${fmt(item.drr7)}</td>
+      <td class="num" style="color:var(--text2)">${fmt(item.drr15)}</td>
+      <td class="num" style="color:var(--blue);font-weight:600">${fmt(item.drr30)}</td>
+      <td class="num" style="color:var(--text2)">${fmt(item.drrMax)}</td>
+      <td class="num" style="color:var(--teal);font-weight:500">${fmt(item.pkg_inventory)}</td>
+      <td class="num" style="color:${periodColor};font-weight:500">${fmt(item[reqKey])}</td>
+      <td class="num" style="color:var(--text2)">₹${item.unit_price.toFixed(2)}</td>
+      <td class="num" style="color:${periodColor};font-weight:500">${fmtC(item[valKey])}</td>
+      <td class="num" style="color:var(--purple);font-weight:500">${fmt(item.pending_qty)}</td>
+      <td class="num" style="color:${c};font-weight:600">${item.coverage_days!==null?item.coverage_days+'d':'N/A'}</td>
+      <td class="num" style="color:${gap>=0?'var(--green)':'var(--red)'};font-weight:600">${gStr}</td>
+      <td>${badge(item)}</td>
+    </tr>`;
+    if(isExp){
+      html+=`<tr class="no-hover"><td class="expand-td" colspan="15">${buildExpandHTML(item)}</td></tr>`;
+    }
+  });
+
+  const tot=data,totGap=tot.reduce((a,i)=>a+i[gapKey],0);
+  html+=`<tr class="total-row no-hover">
+    <td colspan="3" style="color:var(--text2)">TOTAL — ${tot.length} types</td>
+    <td class="num" style="color:var(--text2)">${fmt(tot.reduce((a,i)=>a+i.drr7,0))}</td>
+    <td class="num" style="color:var(--text2)">${fmt(tot.reduce((a,i)=>a+i.drr15,0))}</td>
+    <td class="num" style="color:var(--blue)">${fmt(tot.reduce((a,i)=>a+i.drr30,0))}</td>
+    <td class="num" style="color:var(--text2)">${fmt(tot.reduce((a,i)=>a+i.drrMax,0))}</td>
+    <td class="num" style="color:var(--teal)">${fmt(tot.reduce((a,i)=>a+i.pkg_inventory,0))}</td>
+    <td class="num" style="color:${periodColor}">${fmt(tot.reduce((a,i)=>a+i[reqKey],0))}</td>
+    <td class="num"></td>
+    <td class="num" style="color:${periodColor}">${fmtC(tot.reduce((a,i)=>a+i[valKey],0))}</td>
+    <td class="num" style="color:var(--purple)">${fmt(tot.reduce((a,i)=>a+i.pending_qty,0))}</td>
+    <td class="num"></td>
+    <td class="num" style="color:${totGap>=0?'var(--green)':'var(--red)'}">${(totGap>=0?'+':'')+fmt(totGap)}</td>
+    <td></td>
+  </tr></tbody>`;
+  document.getElementById('drr-table').innerHTML=html;
+}
+
+// ── PO TABLE ──────────────────────────────────────────────
+function renderPOTable(){
+  const totP=PO_DETAIL.reduce((a,r)=>a+r['Pending Quantity'],0);
+  const totV=PO_DETAIL.reduce((a,r)=>a+r['Total'],0);
+  document.getElementById('po-badge').textContent=`${PO_DETAIL.length} lines · ${fmt(totP)} units pending · ₹${fmt(totV)} total`;
+  let html=`<thead><tr>
+    <th>PO Code</th><th>PO Date</th><th>Vendor</th><th>PKC SKU</th><th>Item Name</th>
+    <th class="num">Order Qty</th><th class="num">Received</th><th class="num">Pending</th>
+    <th class="num">% Recv</th><th class="num">Unit Price (₹)</th><th class="num">PO Value (₹)</th><th>Delivery Date</th>
+  </tr></thead><tbody>`;
+  PO_DETAIL.forEach((row,ri)=>{
+    const pct=row['Order Quantity']>0?(row['Recieved Quantity']/row['Order Quantity']*100).toFixed(0)+'%':'0%';
+    html+=`<tr class="no-hover ${ri%2===0?'':'alt'}">
+      <td class="mono">${row['PO Code']}</td>
+      <td style="color:var(--text2)">${row['Created']}</td>
+      <td style="color:var(--text2);max-width:155px;overflow:hidden;text-overflow:ellipsis" title="${row['Vendor Name']}">${row['Vendor Name'].replace(' PRIVATE LIMITED','').replace(' Private Limited','')}</td>
+      <td class="mono">${row['Item SkuCode']}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${row['Item Type Name']}">${row['Item Type Name']}</td>
+      <td class="num">${fmt(row['Order Quantity'])}</td>
+      <td class="num" style="color:var(--teal)">${fmt(row['Recieved Quantity'])}</td>
+      <td class="num" style="color:${row['Pending Quantity']>0?'var(--amber)':'var(--text3)'};font-weight:${row['Pending Quantity']>0?600:400}">${fmt(row['Pending Quantity'])}</td>
+      <td class="num" style="color:var(--text2)">${pct}</td>
+      <td class="num">₹${row['Unit Price'].toFixed(2)}</td>
+      <td class="num">₹${fmt(row['Total'])}</td>
+      <td style="color:var(--text2)">${row['Delivery Date']}</td>
+    </tr>`;
+  });
+  html+=`<tr class="total-row no-hover">
+    <td colspan="5" style="color:var(--text2)">TOTAL</td>
+    <td class="num">${fmt(PO_DETAIL.reduce((a,r)=>a+r['Order Quantity'],0))}</td>
+    <td class="num" style="color:var(--teal)">${fmt(PO_DETAIL.reduce((a,r)=>a+r['Recieved Quantity'],0))}</td>
+    <td class="num" style="color:var(--amber)">${fmt(totP)}</td>
+    <td class="num"></td><td class="num"></td>
+    <td class="num">₹${fmt(totV)}</td><td></td>
+  </tr></tbody>`;
+  document.getElementById('po-table').innerHTML=html;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+fetchAllSheets();
+const m=getMeta();
+// footer=`AstroTalk Packaging DRR Dashboard · ${m.total} packaging types · ${PO_DETAIL.length} open PO lines · 28 May 2026`;
+</script>
+</body>
+</html>
