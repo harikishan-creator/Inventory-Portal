@@ -210,9 +210,13 @@ select{background:#fff;border:1px solid var(--border2);border-radius:var(--r);pa
     </nav>
     <div class="header-right">
       <div class="date-label" id="date-label"></div>
-      <button class="refresh-btn" id="refresh-btn" onclick="fetchAllSheets()">
+      <button class="refresh-btn" id="refresh-btn" onclick="fetchAllSheets()" title="Refresh Google Sheets data">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Refresh
+        Refresh Sheets
+      </button>
+      <button class="refresh-btn" id="po-refresh-btn" onclick="fetchPOFromUniware()" title="Fetch live PO data from Uniware" style="background:#2563eb;box-shadow:0 1px 4px rgba(37,99,235,0.3)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh POs from Uniware
       </button>
       <button class="upload-btn" style="display:none">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload CSV
@@ -560,11 +564,128 @@ function rebuildFromSheets(skuData, drrData, invData) {
   const f = document.getElementById('footer');
   if (f) f.textContent = 'AstroTalk Packaging DRR Dashboard · ' + ITEMS.length + ' packaging types · Live · ' + new Date().toLocaleDateString('en-IN');
 }
-// Auto-refresh every 30 min
-setInterval(fetchAllSheets, 30*60*1000);
+
+function showToast(msg, type='info') {
+  let t = document.getElementById('pkg-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'pkg-toast';
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;transition:opacity .3s;box-shadow:0 4px 12px rgba(0,0,0,.15)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = type==='success'?'#16a34a':type==='error'?'#dc2626':'#2563eb';
+  t.style.color = '#fff';
+  t.style.opacity = '1';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => { t.style.opacity='0'; }, 3500);
+}
+
+// Auto-refresh removed — use Refresh button instead
 
 
 const EMBEDDED = [{"pkg_desc": "Big Murti Box", "pkc_sku": "PKC_0068", "product_count": 3, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 4022, "item_name": "Big Murti Rigid Box", "open_pos": 1, "pending_qty": 0, "total_ordered": 3000, "total_received": 3000, "unit_price": 54.0, "vendors": "BOXOPEDIA PRIVATE LIMITED", "req_30d": 0, "req_60d": 0, "val_30d": 0.0, "val_60d": 0.0, "coverage_days": null, "gap_30d": 4022, "gap_60d": 4022, "doc": 999}, {"pkg_desc": "Big Pyramid Box", "pkc_sku": "PKC_0007", "product_count": 23, "drr7": 65, "drr15": 72, "drr30": 102, "drrMax": 103, "pkg_inventory": 6300, "item_name": "Big Pyramid Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 3060, "req_60d": 6120, "val_30d": 0, "val_60d": 0, "coverage_days": 61.2, "gap_30d": 3240, "gap_60d": 180, "doc": 61.2}, {"pkg_desc": "Black Rigid Packaging Box", "pkc_sku": "PKC_0005", "product_count": 360, "drr7": 3033, "drr15": 3213, "drr30": 3676, "drrMax": 3779, "pkg_inventory": 40011, "item_name": "Black Rigid Packaging Box", "open_pos": 4, "pending_qty": 124762, "total_ordered": 300000, "total_received": 175238, "unit_price": 15.47, "vendors": "BOXOPEDIA PRIVATE LIMITED / Elite Pack Works Private Limited / MJ GLOBAL PRIVATE LIMITED", "req_30d": 110280, "req_60d": 220560, "val_30d": 1706031.6, "val_60d": 3412063.2, "coverage_days": 10.6, "gap_30d": 54493, "gap_60d": -55787, "doc": 10.6}, {"pkg_desc": "Frame black box rigid packaging", "pkc_sku": "PKC_0035", "product_count": 29, "drr7": 199, "drr15": 267, "drr30": 454, "drrMax": 455, "pkg_inventory": 42724, "item_name": "Frame black box rigid packaging", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 13620, "req_60d": 27240, "val_30d": 0, "val_60d": 0, "coverage_days": 93.9, "gap_30d": 29104, "gap_60d": 15484, "doc": 93.9}, {"pkg_desc": "Khazani Oil Corrugated Box", "pkc_sku": "PKC_0039", "product_count": 3, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Khazani Oil Corrugated Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Lakhsmi Ganesh Rigid Packaging Box", "pkc_sku": "PKC_0042", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 422, "item_name": "Lakhsmi Ganesh Rigid Packaging Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 422, "gap_60d": 422, "doc": 999}, {"pkg_desc": "Medium Murti Box", "pkc_sku": "PKC_0017", "product_count": 20, "drr7": 7, "drr15": 7, "drr30": 10, "drrMax": 10, "pkg_inventory": 300, "item_name": "Medium Murti Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 300, "req_60d": 600, "val_30d": 0, "val_60d": 0, "coverage_days": 30.0, "gap_30d": 0, "gap_60d": -300, "doc": 30.0}, {"pkg_desc": "Murti Box Packaging (Blue Box)", "pkc_sku": "PKC_0003", "product_count": 9, "drr7": 4, "drr15": 3, "drr30": 4, "drrMax": 5, "pkg_inventory": 500, "item_name": "Murti Box Packaging (Blue Box)", "open_pos": 1, "pending_qty": 31, "total_ordered": 1000, "total_received": 969, "unit_price": 47.0, "vendors": "Elite Pack Works Private Limited", "req_30d": 120, "req_60d": 240, "val_30d": 5640.0, "val_60d": 11280.0, "coverage_days": 100.0, "gap_30d": 411, "gap_60d": 291, "doc": 100.0}, {"pkg_desc": "Rudraksha Paper Pouch 3.5*3.5", "pkc_sku": "PKC_0034", "product_count": 1, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 7400, "item_name": "Rudraksha Paper Pouch 3.5*3.5", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 7400, "gap_60d": 7400, "doc": 999}, {"pkg_desc": "Selenite Frame Packaging Box Medium", "pkc_sku": "PKC_0064", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Selenite Frame Packaging Box Medium", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Selenite plate packaging rigid box", "pkc_sku": "PKC_0008", "product_count": 22, "drr7": 1920, "drr15": 2578, "drr30": 2010, "drrMax": 2579, "pkg_inventory": 7480, "item_name": "Selenite plate packaging rigid box", "open_pos": 3, "pending_qty": 65389, "total_ordered": 110000, "total_received": 44611, "unit_price": 15.2, "vendors": "BOXOPEDIA PRIVATE LIMITED / Elite Pack Works Private Limited", "req_30d": 60300, "req_60d": 120600, "val_30d": 916560.0, "val_60d": 1833120.0, "coverage_days": 2.9, "gap_30d": 12569, "gap_60d": -47731, "doc": 2.9}, {"pkg_desc": "Small Murti Box", "pkc_sku": "PKC_0069", "product_count": 5, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 2592, "item_name": "Small Murti Rigid Box", "open_pos": 1, "pending_qty": 256, "total_ordered": 4000, "total_received": 3744, "unit_price": 24.5, "vendors": "BOXOPEDIA PRIVATE LIMITED", "req_30d": 0, "req_60d": 0, "val_30d": 0.0, "val_60d": 0.0, "coverage_days": null, "gap_30d": 2848, "gap_60d": 2848, "doc": 999}, {"pkg_desc": "Small Pyramid Box", "pkc_sku": "PKC_0006", "product_count": 46, "drr7": 66, "drr15": 66, "drr30": 78, "drrMax": 78, "pkg_inventory": 300, "item_name": "Small Pyramid Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 2340, "req_60d": 4680, "val_30d": 0, "val_60d": 0, "coverage_days": 3.8, "gap_30d": -2040, "gap_60d": -4380, "doc": 3.8}, {"pkg_desc": "Small Thread Pouch", "pkc_sku": "PKC_0029", "product_count": 2, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Small Thread Pouch", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Swastik Packaging Box", "pkc_sku": "PKC_0055", "product_count": 2, "drr7": 5, "drr15": 5, "drr30": 5, "drrMax": 6, "pkg_inventory": 650, "item_name": "Swastik Packaging Box", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 150, "req_60d": 300, "val_30d": 0, "val_60d": 0, "coverage_days": 108.3, "gap_30d": 500, "gap_60d": 350, "doc": 108.3}, {"pkg_desc": "Yantra Envelop Packaging Big 9*9", "pkc_sku": "PKC_0026", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 300, "item_name": "Yantra Envelop Packaging Big 9*9", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 300, "gap_60d": 300, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Big Box 9*9", "pkc_sku": "PKC_0027", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 3000, "item_name": "Yantra Envelop Packaging Big Box 9*9", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 3000, "gap_60d": 3000, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Small 6*6", "pkc_sku": "PKC_0025", "product_count": 13, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 5300, "item_name": "Yantra Envelop Packaging Small 6*6", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 5300, "gap_60d": 5300, "doc": 999}, {"pkg_desc": "Yantra Envelop Packaging Small Box 6*6", "pkc_sku": "PKC_0024", "product_count": 11, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 0, "item_name": "Yantra Envelop Packaging Small Box 6*6", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 0, "gap_60d": 0, "doc": 999}, {"pkg_desc": "Zodiac Packaging Box (Purple\u00a0Box)", "pkc_sku": "PKC_0016", "product_count": 12, "drr7": 0, "drr15": 0, "drr30": 0, "drrMax": 0, "pkg_inventory": 120, "item_name": "Zodiac Packaging Box (Purple\u00a0Box)", "open_pos": 0, "pending_qty": 0, "total_ordered": 0, "total_received": 0, "unit_price": 0, "vendors": "\u2014", "req_30d": 0, "req_60d": 0, "val_30d": 0, "val_60d": 0, "coverage_days": null, "gap_30d": 120, "gap_60d": 120, "doc": 999}];
+
+// ── Fetch PO data live from Uniware via Sourcing-Dashboard proxy ──────────────
+const UNIWARE_API = 'https://weekly-dashboard-yxe7.vercel.app/api/uniware';
+const PKG_FACILITY = 'MSKT_FZP';
+
+async function fetchPOFromUniware() {
+  const btn = document.getElementById('po-refresh-btn');
+  if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
+  
+  const srcEl = document.getElementById('src-text');
+  if (srcEl) srcEl.textContent = 'Fetching POs from Uniware…';
+
+  try {
+    // Trigger PO export
+    const trigRes = await fetch(UNIWARE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'trigger', type: 'po', facility: PKG_FACILITY })
+    });
+    const { jobCode, error: trigErr } = await trigRes.json();
+    if (trigErr || !jobCode) throw new Error(trigErr || 'No jobCode');
+
+    // Poll until done (8s interval, max 25 attempts)
+    let downloadUrl = null;
+    for (let i = 0; i < 25; i++) {
+      await new Promise(r => setTimeout(r, 8000));
+      const pollRes = await fetch(UNIWARE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'poll', jobCode, facility: PKG_FACILITY })
+      });
+      const pd = await pollRes.json();
+      if (pd.status === 'DONE') { downloadUrl = pd.url; break; }
+      if (pd.status === 'FAILED') throw new Error('PO export failed');
+    }
+    if (!downloadUrl) throw new Error('Timeout waiting for PO export');
+
+    // Download rows
+    const dlRes = await fetch(UNIWARE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'download', url: downloadUrl })
+    });
+    const { rows } = await dlRes.json();
+    if (!rows || !rows.length) throw new Error('No PO rows returned');
+
+    // Map Uniware PO rows to PO_DETAIL format
+    const n = v => { const x = parseFloat(String(v||0).replace(/,/g,'')); return isNaN(x) ? 0 : x; };
+    const fmt_date = s => {
+      if (!s) return '—';
+      // Convert YYYY-MM-DD to DD Mon YYYY
+      const d = new Date(s.split(' ')[0]);
+      if (isNaN(d)) return s;
+      return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    };
+
+    PO_DETAIL = rows.map(r => ({
+      'PO Code':            (r['PO Code'] || '').trim(),
+      'Created':            fmt_date(r['Created']),
+      'Vendor Name':        (r['Vendor Name'] || '').trim(),
+      'Item SkuCode':       (r['Item SkuCode'] || r['item_skucode'] || '').trim(),
+      'Item Type Name':     (r['Item Type Name'] || '').trim(),
+      'Order Quantity':     n(r['Order Quantity']),
+      'Recieved Quantity':  n(r['Recieved Quantity']),
+      'Rejected Quantity':  n(r['Rejected Quantity']),
+      'Pending Quantity':   n(r['Pending Quantity']),
+      'Unit Price':         n(r['Unit Price']),
+      'Total':              n(r['Total']),
+      'Delivery Date':      fmt_date(r['Delivery Date']),
+      'Purchase Order Status': (r['Purchase Order Status'] || '').trim(),
+    })).filter(r => r['Item SkuCode']);
+
+    console.log(`Loaded ${PO_DETAIL.length} PO lines from Uniware`);
+
+    // Re-render with new PO data
+    if (ITEMS.length > 0) {
+      renderMetricCards();
+      renderCharts();
+      renderDRRTable();
+      renderPOTable();
+    }
+
+    const now = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    if (srcEl) srcEl.textContent = `Live · Google Sheets + Uniware POs · Updated ${now}`;
+    showToast(`✓ ${PO_DETAIL.length} PO lines loaded from Uniware`, 'success');
+
+  } catch(err) {
+    console.error('Uniware PO fetch error:', err);
+    if (srcEl) srcEl.textContent = 'PO fetch failed — showing cached data';
+    showToast('⚠ Could not fetch POs from Uniware: ' + err.message, 'error');
+  }
+
+  if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
+}
+
+// Auto-fetch POs from Uniware on page load
+window.addEventListener('load', () => {
+  // Fetch sheets first, then POs from Uniware
+  fetchAllSheets().then(() => fetchPOFromUniware());
+});
+
 const EMBEDDED_PO = [{"PO Code": "POFZP1583", "Created": "20 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 50000.0, "Recieved Quantity": 44611.0, "Pending Quantity": 5389.0, "Unit Price": 15.3, "Total": 803250.0, "Delivery Date": "25 Jun 2026"}, {"PO Code": "POFZP1584", "Created": "20 Mar 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 50000.0, "Recieved Quantity": 32043.0, "Pending Quantity": 17957.0, "Unit Price": 15.0, "Total": 787500.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1596", "Created": "24 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0003", "Item Type Name": "Murti Box Packaging (Blue Box)", "Order Quantity": 1000.0, "Recieved Quantity": 969.0, "Pending Quantity": 31.0, "Unit Price": 47.0, "Total": 49350.0, "Delivery Date": "30 Apr 2026"}, {"PO Code": "POFZP1597", "Created": "24 Mar 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 100000.0, "Recieved Quantity": 97015.0, "Pending Quantity": 2985.0, "Unit Price": 15.65, "Total": 1643250.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1677", "Created": "15 Apr 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0066", "Item Type Name": "Big Frame Rigid Box", "Order Quantity": 2000.0, "Recieved Quantity": 1093.0, "Pending Quantity": 907.0, "Unit Price": 110.0, "Total": 231000.0, "Delivery Date": "31 May 2026"}, {"PO Code": "POFZP1677", "Created": "15 Apr 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "CF_0029_GC", "Item Type Name": "Bracelet Card", "Order Quantity": 5500.0, "Recieved Quantity": 5500.0, "Pending Quantity": 0.0, "Unit Price": 0.6, "Total": 3465.0, "Delivery Date": "31 May 2026"}, {"PO Code": "POFZP1681", "Created": "16 Apr 2026", "Vendor Name": "MJ GLOBAL PRIVATE LIMITED", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 50000.0, "Recieved Quantity": 46180.0, "Pending Quantity": 3820.0, "Unit Price": 16.25, "Total": 853125.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1764", "Created": "07 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0068", "Item Type Name": "Big Murti Rigid Box", "Order Quantity": 3000.0, "Recieved Quantity": 3000.0, "Pending Quantity": 0.0, "Unit Price": 54.0, "Total": 170100.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1764", "Created": "07 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0069", "Item Type Name": "Small Murti Rigid Box", "Order Quantity": 4000.0, "Recieved Quantity": 3744.0, "Pending Quantity": 256.0, "Unit Price": 24.5, "Total": 102900.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1790", "Created": "12 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0071", "Item Type Name": "Cavity", "Order Quantity": 2000.0, "Recieved Quantity": 0.0, "Pending Quantity": 2000.0, "Unit Price": 1.5, "Total": 3150.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1790", "Created": "12 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0067", "Item Type Name": "Small Tortoise Rigid Box", "Order Quantity": 20000.0, "Recieved Quantity": 11930.0, "Pending Quantity": 8070.0, "Unit Price": 15.0, "Total": 315000.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1806", "Created": "14 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0085", "Item Type Name": "2 Tortoise Rigid Combo Box", "Order Quantity": 4000.0, "Recieved Quantity": 0.0, "Pending Quantity": 4000.0, "Unit Price": 26.35, "Total": 110670.0, "Delivery Date": "29 Jun 2026"}, {"PO Code": "POFZP1828", "Created": "19 May 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0005", "Item Type Name": "Black Rigid Packaging Box", "Order Quantity": 100000.0, "Recieved Quantity": 0.0, "Pending Quantity": 100000.0, "Unit Price": 15.0, "Total": 1575000.0, "Delivery Date": "30 Jul 2026"}, {"PO Code": "POFZP1829", "Created": "19 May 2026", "Vendor Name": "Elite Pack Works Private Limited", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 50000.0, "Recieved Quantity": 0.0, "Pending Quantity": 50000.0, "Unit Price": 15.3, "Total": 803250.0, "Delivery Date": "30 Jul 2026"}, {"PO Code": "POFZP1834", "Created": "20 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "CF_0029_GC", "Item Type Name": "Bracelet Card", "Order Quantity": 100000.0, "Recieved Quantity": 18600.0, "Pending Quantity": 81400.0, "Unit Price": 0.6, "Total": 63000.0, "Delivery Date": "30 Jun 2026"}, {"PO Code": "POFZP1875", "Created": "28 May 2026", "Vendor Name": "BOXOPEDIA PRIVATE LIMITED", "Item SkuCode": "PKC_0008", "Item Type Name": "Selenite plate packaging rigid box", "Order Quantity": 10000.0, "Recieved Quantity": 0.0, "Pending Quantity": 10000.0, "Unit Price": 15.0, "Total": 157500.0, "Delivery Date": "30 Jun 2026"}];
 let ITEMS = EMBEDDED.map(i=>({...i}));
 let PO_DETAIL = EMBEDDED_PO.map(r=>({...r}));
@@ -968,7 +1089,8 @@ function renderPOTable(){
 }
 
 // ── INIT ──────────────────────────────────────────────────
-fetchAllSheets();
+// On page load: fetch sheets then auto-load POs from Uniware
+fetchAllSheets().then(() => fetchPOFromUniware()).catch(() => fetchPOFromUniware());
 </script>
 </body>
 </html>
