@@ -885,7 +885,11 @@ function renderReqChart(){
 
 // ── EXPAND ROW ────────────────────────────────────────────
 function buildExpandHTML(item){
-  const poRows=PO_DETAIL.filter(p=>p['Item SkuCode']===item.pkc_sku);
+  const OPEN_STATUSES_DETAIL = ['APPROVED','PARTIALLY_RECEIVED','CREATED'];
+  const poRows=PO_DETAIL.filter(p=>{
+    const status=(p['Purchase Order Status']||'').toUpperCase().replace(/ /g,'_');
+    return p['Item SkuCode']===item.pkc_sku && OPEN_STATUSES_DETAIL.includes(status) && parseFloat(p['Pending Quantity']||0)>0;
+  });
   const c=covColor(item),pct=item.coverage_days!==null?Math.min(100,(item.coverage_days/90)*100):100;
   const g30=item.gap_30d, g60=item.gap_60d;
   let poHTML='';
@@ -1052,15 +1056,25 @@ function renderDRRTable(){
 
 // ── PO TABLE ──────────────────────────────────────────────
 function renderPOTable(){
-  const totP=PO_DETAIL.reduce((a,r)=>a+r['Pending Quantity'],0);
-  const totV=PO_DETAIL.reduce((a,r)=>a+r['Total'],0);
-  document.getElementById('po-badge').textContent=`${PO_DETAIL.length} lines · ${fmt(totP)} units pending · ₹${fmt(totV)} total`;
+  // Filter: only packaging SKUs (PKC_* / CF_*), only open (APPROVED/PARTIALLY_RECEIVED), only pending > 0
+  const OPEN_STATUSES = ['APPROVED','PARTIALLY_RECEIVED','CREATED'];
+  const displayPOs = PO_DETAIL.filter(r => {
+    const sku = (r['Item SkuCode'] || '').trim();
+    const status = (r['Purchase Order Status'] || '').toUpperCase().replace(/ /g,'_');
+    const isPkgSku = sku.startsWith('PKC_') || sku.startsWith('CF_');
+    const isOpen = OPEN_STATUSES.includes(status);
+    const hasPending = parseFloat(r['Pending Quantity'] || 0) > 0;
+    return isPkgSku && isOpen && hasPending;
+  });
+  const totP=displayPOs.reduce((a,r)=>a+parseFloat(r['Pending Quantity']||0),0);
+  const totV=displayPOs.reduce((a,r)=>a+parseFloat(r['Total']||0),0);
+  document.getElementById('po-badge').textContent=`${displayPOs.length} lines · ${fmt(totP)} units pending · ₹${fmt(totV)} total`;
   let html=`<thead><tr>
     <th>PO Code</th><th>PO Date</th><th>Vendor</th><th>PKC SKU</th><th>Item Name</th>
     <th class="num">Order Qty</th><th class="num">Received</th><th class="num">Pending</th>
     <th class="num">% Recv</th><th class="num">Unit Price (₹)</th><th class="num">PO Value (₹)</th><th>Delivery Date</th>
   </tr></thead><tbody>`;
-  PO_DETAIL.forEach((row,ri)=>{
+  displayPOs.forEach((row,ri)=>{
     const pct=row['Order Quantity']>0?(row['Recieved Quantity']/row['Order Quantity']*100).toFixed(0)+'%':'0%';
     html+=`<tr class="no-hover ${ri%2===0?'':'alt'}">
       <td class="mono">${row['PO Code']}</td>
@@ -1079,8 +1093,8 @@ function renderPOTable(){
   });
   html+=`<tr class="total-row no-hover">
     <td colspan="5" style="color:var(--text2)">TOTAL</td>
-    <td class="num">${fmt(PO_DETAIL.reduce((a,r)=>a+r['Order Quantity'],0))}</td>
-    <td class="num" style="color:var(--teal)">${fmt(PO_DETAIL.reduce((a,r)=>a+r['Recieved Quantity'],0))}</td>
+    <td class="num">${fmt(displayPOs.reduce((a,r)=>a+parseFloat(r['Order Quantity']||0),0))}</td>
+    <td class="num" style="color:var(--teal)">${fmt(displayPOs.reduce((a,r)=>a+parseFloat(r['Recieved Quantity']||0),0))}</td>
     <td class="num" style="color:var(--amber)">${fmt(totP)}</td>
     <td class="num"></td><td class="num"></td>
     <td class="num">₹${fmt(totV)}</td><td></td>
