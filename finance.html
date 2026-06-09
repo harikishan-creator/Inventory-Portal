@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Finance — PO Payment Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e4e7ed;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --blue:#2563eb;--blue-dim:#eff6ff;--blue-mid:#bfdbfe;
+  --green:#16a34a;--green-dim:#f0fdf4;--green-mid:#bbf7d0;
+  --amber:#d97706;--amber-dim:#fffbeb;--amber-mid:#fde68a;
+  --red:#dc2626;--red-dim:#fef2f2;--red-mid:#fecaca;
+  --teal:#0d9488;--teal-dim:#f0fdfa;--teal-mid:#99f6e4;
+  --purple:#7c3aed;--purple-dim:#faf5ff;--purple-mid:#ddd6fe;
+  --orange:#ea580c;--orange-dim:#fff7ed;--orange-mid:#fed7aa;
+  --r:8px;--rl:12px;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* HEADER */
+.header{background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px;gap:8px;flex-wrap:nowrap}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(37,99,235,0.3)}
+.logo-title{font-weight:600;font-size:15px;color:var(--text)}
+.logo-badge{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.header-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.date-label{font-size:11px;color:var(--text3)}
+.sync-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;background:var(--blue);border:none;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 1px 4px rgba(37,99,235,0.3)}
+.sync-btn:hover{background:#1d4ed8}
+.sync-btn svg{width:13px;height:13px}
+
+/* NAV TABS */
+nav{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px}
+.nav-btn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:7px;background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.nav-btn.active{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.nav-btn:hover:not(.active){background:rgba(255,255,255,0.6)}
+
+/* CONTENT */
+.content{max-width:1440px;margin:0 auto;padding:1.25rem 1.5rem}
+.panel{display:none}.panel.active{display:block}
+
+/* METRIC GRID */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.25rem}
+.metric-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.1rem}
+.metric-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.metric-val{font-size:24px;font-weight:600;color:var(--text);line-height:1.2}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.metric-card.accent-green .metric-val{color:var(--green)}
+.metric-card.accent-red .metric-val{color:var(--red)}
+.metric-card.accent-amber .metric-val{color:var(--amber)}
+.metric-card.accent-blue .metric-val{color:var(--blue)}
+.metric-card.accent-purple .metric-val{color:var(--purple)}
+
+/* SECTION HEADER */
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:1.5rem}
+.section-title{font-size:14px;font-weight:600;color:var(--text)}
+.pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px}
+.pill-red{background:var(--red-dim);color:var(--red)}
+.pill-amber{background:var(--amber-dim);color:var(--amber)}
+.pill-blue{background:var(--blue-dim);color:var(--blue)}
+.pill-green{background:var(--green-dim);color:var(--green)}
+.pill-purple{background:var(--purple-dim);color:var(--purple)}
+.pill-gray{background:var(--bg3);color:var(--text2)}
+
+/* CARD TABLE */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:11px;font-weight:600;color:var(--text3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg3)}
+.po-link{color:var(--blue);text-decoration:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:500}
+.po-link:hover{text-decoration:underline}
+td.mono{font-family:'DM Mono',monospace;font-size:12px}
+td.bold{font-weight:600}
+td.muted{color:var(--text2);font-size:12px}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+.chart-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem}
+.chart-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+@media(max-width:700px){.charts-row{grid-template-columns:1fr}}
+
+/* SEARCH BAR */
+.search-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.search-row input,.search-row select{
+  padding:6px 11px;border-radius:7px;border:1px solid var(--border2);
+  font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;
+  outline:none;transition:border-color .15s
+}
+.search-row input:focus,.search-row select:focus{border-color:var(--blue)}
+.search-row input{width:220px}
+
+/* VENDOR DETAIL MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;backdrop-filter:blur(4px)}
+.overlay.hidden{display:none}
+.modal{background:#fff;border-radius:16px;width:min(900px,100%);box-shadow:0 24px 80px rgba(0,0,0,0.22);flex-shrink:0}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.modal-title{font-size:16px;font-weight:600;color:var(--text)}
+.modal-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.close-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border2);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2)}
+.close-btn:hover{background:var(--bg3)}
+.modal-body{padding:1.25rem 1.5rem}
+.modal-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.m-stat{background:var(--bg3);border-radius:8px;padding:.75rem 1rem}
+.m-stat-label{font-size:11px;color:var(--text3);margin-bottom:3px}
+.m-stat-val{font-size:16px;font-weight:600;color:var(--text)}
+
+/* PAYMENT SPLIT BARS */
+.pay-split{display:flex;height:6px;border-radius:6px;overflow:hidden;margin:3px 0}
+.pay-split .adv{background:var(--blue)}
+.pay-split .fin{background:var(--green)}
+
+/* LOADING SPINNER */
+.loader{display:flex;align-items:center;justify-content:center;gap:10px;padding:2rem;color:var(--text3);font-size:13px}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">💰</div>
+      <span class="logo-title">Finance</span>
+      <span class="logo-badge">PO Payments</span>
+    </div>
+
+    <nav id="mainNav">
+      <button class="nav-btn active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="nav-btn" onclick="switchTab('advance',this)">Advance Payments</button>
+      <button class="nav-btn" onclick="switchTab('final',this)">Final Payments</button>
+      <button class="nav-btn" onclick="switchTab('actions',this)">Action Items</button>
+      <button class="nav-btn" onclick="switchTab('vendors',this)">Vendors</button>
+    </nav>
+
+    <div class="header-right">
+      <span class="date-label" id="syncLabel">Last synced: just now</span>
+      <button class="sync-btn" onclick="syncUniwares()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8a7 7 0 1 0 7-7"/><polyline points="1,1 1,8 8,8"/></svg>
+        Sync Uniware
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ OVERVIEW TAB ═══════════════ -->
+<div class="panel active" id="panel-overview">
+
+  <div class="metric-grid" id="overviewMetrics"></div>
+
+  <!-- Payment split -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Final payment status</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text2)" id="donutLegend"></div>
+      <div style="position:relative;height:200px"><canvas id="donutChart" role="img" aria-label="Final payment status donut chart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Total payment by assignee (₹ Cr)</div>
+      <div style="position:relative;height:200px"><canvas id="assigneeBar" role="img" aria-label="Payment by assignee bar chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Top 8 vendors by total payment</div>
+      <div style="position:relative;height:260px"><canvas id="vendorBar" role="img" aria-label="Top vendors bar chart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Advance vs final payment split</div>
+      <div style="position:relative;height:260px"><canvas id="splitBar" role="img" aria-label="Advance vs final split"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ ADVANCE TAB ═══════════════ -->
+<div class="panel" id="panel-advance">
+  <div class="metric-grid" id="advMetrics"></div>
+
+  <div class="section-hdr">
+    <span class="section-title">All advance payments</span>
+    <span class="pill pill-blue" id="advCount">— POs</span>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="advSearch" placeholder="Search PO / vendor…" oninput="renderAdvTable()"/>
+    <select id="advAssignee" onchange="renderAdvTable()">
+      <option value="all">All assignees</option>
+      <option>Manik</option>
+      <option>Harsh Pandey</option>
+      <option>Puneet Pandey</option>
+      <option>Rajvir</option>
+      <option>Hari</option>
+    </select>
+    <select id="advStatus" onchange="renderAdvTable()">
+      <option value="all">All statuses</option>
+      <option value="Completed">Completed</option>
+      <option value="Pending">Pending</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>PO No.</th>
+            <th>Vendor</th>
+            <th>Assignee</th>
+            <th>Adv %</th>
+            <th>Advance paid (₹)</th>
+            <th>Adv assigned date</th>
+            <th>Adv completed date</th>
+            <th>Status</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody id="advBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FINAL TAB ═══════════════ -->
+<div class="panel" id="panel-final">
+  <div class="metric-grid" id="finMetrics"></div>
+
+  <div class="section-hdr">
+    <span class="section-title">All final payments</span>
+    <span class="pill pill-green" id="finCount">— POs</span>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="finSearch" placeholder="Search PO / vendor…" oninput="renderFinTable()"/>
+    <select id="finAssignee" onchange="renderFinTable()">
+      <option value="all">All assignees</option>
+      <option>Manik</option>
+      <option>Harsh Pandey</option>
+      <option>Puneet Pandey</option>
+      <option>Rajvir</option>
+      <option>Hari</option>
+    </select>
+    <select id="finStatus" onchange="renderFinTable()">
+      <option value="all">All statuses</option>
+      <option value="Completed">Completed</option>
+      <option value="not required">Not required</option>
+      <option value="Pending">Pending</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>PO No.</th>
+            <th>Vendor</th>
+            <th>Assignee</th>
+            <th>Final payable (₹)</th>
+            <th>Total payment (₹)</th>
+            <th>Final assigned date</th>
+            <th>Final completed date</th>
+            <th>Status</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody id="finBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ACTIONS TAB ═══════════════ -->
+<div class="panel" id="panel-actions">
+
+  <div class="section-hdr" style="margin-top:0">
+    <span class="section-title">Payments on hold</span>
+    <span class="pill pill-red">4 POs · ₹19.27L blocked</span>
+  </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Held amount (₹)</th><th>Reason</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1371" target="_blank">POFZP1371 ↗</a></td>
+            <td>Elite Pack Works</td><td>Manik</td><td class="bold">7,67,025</td>
+            <td class="muted">Open PO — advance only paid, final not required yet</td>
+            <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="checkPO('POFZP1371')">Check in Uniware</button></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1414" target="_blank">POFZP1414 ↗</a></td>
+            <td>BOXOPEDIA</td><td>Manik</td><td class="bold">10,00,000</td>
+            <td class="muted">Open PO — advance only paid, final not required yet</td>
+            <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="checkPO('POFZP1414')">Check in Uniware</button></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1492" target="_blank">POFZP1492 ↗</a></td>
+            <td>Aariv Impex</td><td>Puneet Pandey</td><td class="bold">1,47,000</td>
+            <td class="muted">Material on hold — final payment blocked</td>
+            <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="checkPO('POFZP1492')">Check in Uniware</button></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1503" target="_blank">POFZP1503 ↗</a></td>
+            <td>Aariv Impex</td><td>Puneet Pandey</td><td class="bold">13,133</td>
+            <td class="muted">Explicit hold — "Hold this payment"</td>
+            <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="checkPO('POFZP1503')">Check in Uniware</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    <span class="section-title">Reconciliation sheets pending</span>
+    <span class="pill pill-amber">6 POs</span>
+  </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Total (₹)</th><th>Remark</th><th>Reco Sheet</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1403" target="_blank">POFZP1403 ↗</a></td>
+            <td>V.S. BEADS & GEMS</td><td>Puneet Pandey</td><td class="bold">3,79,563</td>
+            <td class="muted">reco needed</td>
+            <td><span class="pill pill-red">Missing</span></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1359" target="_blank">POFZP1359 ↗</a></td>
+            <td>V.S. BEADS & GEMS</td><td>Puneet Pandey</td><td class="bold">18,509</td>
+            <td class="muted">CN asked</td>
+            <td><span class="pill pill-amber">CN Pending</span></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1438" target="_blank">POFZP1438 ↗</a></td>
+            <td>NILKANTH AGATE</td><td>Harsh Pandey</td><td class="bold">7,60,560</td>
+            <td class="muted">Reco sheet need to be done</td>
+            <td><span class="pill pill-red">Missing</span></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1369" target="_blank">POFZP1369 ↗</a></td>
+            <td>CRYSTAL ORGONITE</td><td>Harsh Pandey</td><td class="bold">40,125</td>
+            <td class="muted">Reco sheet need to be done</td>
+            <td><span class="pill pill-red">Missing</span></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1472" target="_blank">POFZP1472 ↗</a></td>
+            <td>Bukhari Agate</td><td>Puneet Pandey</td><td class="bold">47,412</td>
+            <td class="muted">Need reco sheet urgent</td>
+            <td><span class="pill pill-red">Missing</span></td>
+          </tr>
+          <tr>
+            <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=POFZP1318" target="_blank">POFZP1318 ↗</a></td>
+            <td>ASHISH CRYSTALS PVT LTD</td><td>Puneet Pandey</td><td class="bold">10,56,780</td>
+            <td class="muted">Reco sheet linked — verify</td>
+            <td><span class="pill pill-amber">Needs Verify</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    <span class="section-title">Hari's POs — data missing</span>
+    <span class="pill pill-purple">No payment data</span>
+  </div>
+  <div class="card" id="hariCard">
+    <div class="loader" id="hariLoader"><div class="spinner"></div>Fetching from Uniware…</div>
+    <div class="tbl-wrap" id="hariTable" style="display:none">
+      <table>
+        <thead><tr><th>PO No.</th><th>Vendor</th><th>PO Status</th><th>Created date</th><th>Total value (₹)</th><th>GRN status</th><th>Action</th></tr></thead>
+        <tbody id="hariBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ VENDORS TAB ═══════════════ -->
+<div class="panel" id="panel-vendors">
+
+  <div class="section-hdr" style="margin-top:0">
+    <span class="section-title">Vendor payment summary</span>
+    <span class="pill pill-blue" id="vendorCount">47 vendors</span>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="vendorSearch" placeholder="Search vendor…" oninput="renderVendorTable()"/>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>POs</th>
+            <th>Total paid (₹)</th>
+            <th>Advance (₹)</th>
+            <th>Final (₹)</th>
+            <th>Adv %</th>
+            <th>Payment split</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="vendorBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- VENDOR DETAIL MODAL -->
+<div class="overlay hidden" id="vendorModal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="modalVendorName">—</div>
+        <div class="modal-sub" id="modalVendorSub">—</div>
+      </div>
+      <button class="close-btn" onclick="closeVendorModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-metrics" id="modalMetrics"></div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">All POs from this vendor</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>PO No.</th>
+              <th>Assignee</th>
+              <th>Advance (₹)</th>
+              <th>Final (₹)</th>
+              <th>Total (₹)</th>
+              <th>Final status</th>
+              <th>Reco sheet</th>
+              <th>Remark</th>
+            </tr>
+          </thead>
+          <tbody id="modalPOBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:1.25rem" id="modalUniwareSection">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">Open POs in Uniware (live)</span>
+          <button class="sync-btn" style="font-size:11px;padding:4px 12px" onclick="fetchVendorUniwares(currentVendor)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M1 8a7 7 0 1 0 7-7"/><polyline points="1,1 1,8 8,8"/></svg>
+            Fetch from Uniware
+          </button>
+        </div>
+        <div id="uniwareVendorData">
+          <div style="font-size:12px;color:var(--text3);padding:.75rem;background:var(--bg3);border-radius:var(--r);text-align:center">
+            Click "Fetch from Uniware" to load live open PO quantities for this vendor
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────
+const POS = [
+  {a:"Manik",po:"POFZP1363",v:"BOXOPEDIA",advPct:0,adv:0,fin:514500,tot:514500,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1363",remark:""},
+  {a:"Manik",po:"POFZP1428",v:"BGSG",advPct:50,adv:29925,fin:33075,tot:63000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and cn"},
+  {a:"Puneet Pandey",po:"POFZP1422",v:"DIVINERETAIL",advPct:0,adv:0,fin:64558,tot:64558,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1422",remark:""},
+  {a:"Manik",po:"POFZP1423",v:"BGSG",advPct:50,adv:20475,fin:0,tot:20475,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill"},
+  {a:"Manik",po:"POFZP1400",v:"HUMMINGBIRD PACKAGING",advPct:50,adv:144550,fin:144550,tot:289100,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"no cn"},
+  {a:"Puneet Pandey",po:"POFZP1421",v:"PACK N SEAL",advPct:0,adv:0,fin:120832,tot:120832,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1421",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1424",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:105840,tot:105840,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1424",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1319",v:"Bhalodiya Brothers",advPct:50,adv:8433125,fin:7584575,tot:16017700,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1319",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1351",v:"Bhalodiya Brothers",advPct:50,adv:136269,fin:130350,tot:266619,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1351",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1320",v:"Krashnavi Agate",advPct:0,adv:0,fin:24556,tot:24556,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill and CN"},
+  {a:"Harsh Pandey",po:"POFZP1398",v:"NAND KISHORE & CO.",advPct:60,adv:22089,fin:14726,tot:36815,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill"},
+  {a:"Harsh Pandey",po:"POFZP1420",v:"Trade First",advPct:0,adv:0,fin:5192,tot:5192,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill"},
+  {a:"Harsh Pandey",po:"POFZP1397",v:"Trade First",advPct:0,adv:0,fin:11942,tot:11942,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill"},
+  {a:"Puneet Pandey",po:"POFZP0996",v:"V.S. BEADS & GEMS",advPct:50,adv:20085,fin:9159,tot:29244,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP0996",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1431",v:"Innov Creaton",advPct:0,adv:0,fin:47511,tot:47511,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1431",remark:"done"},
+  {a:"Puneet Pandey",po:"POFZP1014",v:"V.S. BEADS & GEMS",advPct:50,adv:173967,fin:-144064,tot:29903,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1014",remark:"adjust with POFZP1496"},
+  {a:"Puneet Pandey",po:"POFZP1083",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:7880,tot:7880,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1083",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1165",v:"V.S. BEADS & GEMS",advPct:50,adv:17716,fin:15131,tot:32847,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1165",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1192",v:"V.S. BEADS & GEMS",advPct:50,adv:316494,fin:208908,tot:525402,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1192",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1230",v:"V.S. BEADS & GEMS",advPct:50,adv:62160,fin:3223,tot:65383,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1230",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1242",v:"V.S. BEADS & GEMS",advPct:50,adv:432600,fin:117581,tot:550181,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1242",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1294",v:"V.S. BEADS & GEMS",advPct:50,adv:140054,fin:78136,tot:218190,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1294",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1381",v:"Gumsani Handicrafts",advPct:0,adv:0,fin:94509,tot:94509,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1381",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1328",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:1854,tot:1854,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1328",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1402",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:80734,tot:80734,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 bill"},
+  {a:"Puneet Pandey",po:"POFZP1329",v:"V.S. BEADS & GEMS",advPct:50,adv:625725,fin:546383,tot:1172108,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1329",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1330",v:"V.S. BEADS & GEMS",advPct:50,adv:23175,fin:22016,tot:45191,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1330",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1341",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:62097,tot:62097,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1341",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1359",v:"V.S. BEADS & GEMS",advPct:50,adv:12875,fin:5634,tot:18509,advDate:"17-04-2026",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1359",remark:"cn asked"},
+  {a:"Puneet Pandey",po:"POFZP1390",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:81996,tot:81996,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1390",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1401",v:"V.S. BEADS & GEMS",advPct:50,adv:208575,fin:195810,tot:404385,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1401",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1403",v:"V.S. BEADS & GEMS",advPct:50,adv:211150,fin:168413,tot:379563,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"reco needed"},
+  {a:"Puneet Pandey",po:"POFZP1412",v:"V.S. BEADS & GEMS",advPct:50,adv:375435,fin:243282,tot:618717,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1412",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1415",v:"V.S. BEADS & GEMS",advPct:50,adv:141007,fin:134866,tot:275873,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1415",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1405",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:0,tot:0,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"All Quantity Rejected"},
+  {a:"Puneet Pandey",po:"POASTN0109",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:111655,tot:111655,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POASTN0109",remark:"ONLY 1 INVOICE"},
+  {a:"Puneet Pandey",po:"POASTN0115",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:25652,tot:25652,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POASTN0115",remark:"ONLY 1 INVOICE"},
+  {a:"Puneet Pandey",po:"POFZP1426",v:"Anshul Impex",advPct:0,adv:0,fin:86767,tot:86767,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1426",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1445",v:"Trade First",advPct:0,adv:0,fin:5192,tot:5192,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"ONLY 1 INVOICE"},
+  {a:"Harsh Pandey",po:"POFZP1349",v:"Cosmic Agate And Minerals",advPct:0,adv:0,fin:79650,tot:79650,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"ONLY 2 INVOICE"},
+  {a:"Puneet Pandey",po:"POFZP1343",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:0,tot:0,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"All Quantity Rejected"},
+  {a:"Harsh Pandey",po:"POFZP1342",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:370416,tot:370416,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1342",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1395",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:576794,tot:576794,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 2 invoice"},
+  {a:"Harsh Pandey",po:"POFZP1446",v:"CRYSTAL HOUSE",advPct:0,adv:0,fin:13973,tot:13973,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"ONLY 1 INVOICE"},
+  {a:"Manik",po:"POFZP1345",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:146609,tot:146609,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1345",remark:""},
+  {a:"Manik",po:"POFZP1380",v:"Humming Bird",advPct:50,adv:7875,fin:7875,tot:15750,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1340",v:"Humming Bird",advPct:50,adv:822900,fin:180818,tot:1003718,advDate:"",advComp:"",finDate:"21-05-2026",finComp:"26/05/2026",finStatus:"Completed",recoLink:"POFZP1340",remark:""},
+  {a:"Manik",po:"POFZP1039",v:"MJ GLOBAL",advPct:50,adv:1706250,fin:1682653,tot:3388903,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1361",v:"MJ GLOBAL",advPct:50,adv:525000,fin:525000,tot:1050000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1371",v:"Elite Pack Works",advPct:50,adv:767025,fin:0,tot:767025,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"not required",recoLink:"",remark:"HOLD — Open PO"},
+  {a:"Manik",po:"POFZP1182",v:"Elite Pack Works",advPct:50,adv:834750,fin:850597,tot:1685347,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1181",v:"Elite Pack Works",advPct:50,adv:853125,fin:880404,tot:1733529,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1379",v:"BGSG Solutions",advPct:50,adv:26250,fin:24675,tot:50925,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1228",v:"BGSG Solutions",advPct:50,adv:82646,fin:83856,tot:166502,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1414",v:"BOXOPEDIA",advPct:0,adv:1000000,fin:0,tot:1000000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"not required",recoLink:"",remark:"HOLD — Open PO"},
+  {a:"Manik",po:"POFZP1452",v:"Elite Pack Works",advPct:50,adv:42656,fin:47591,tot:90247,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1434",v:"BOXOPEDIA",advPct:0,adv:0,fin:300300,tot:300300,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1460",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:39091,tot:39091,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1360",v:"Gumsani Handicrafts",advPct:0,adv:0,fin:78053,tot:78053,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1360",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1357",v:"Aariv Impex",advPct:50,adv:10815,fin:10815,tot:21630,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1453",v:"EUNIQUE BARSCAN",advPct:0,adv:0,fin:105492,tot:105492,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1353",v:"EUNIQUE BARSCAN",advPct:0,adv:0,fin:210252,tot:210252,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1470",v:"Bhalodiya Brothers",advPct:50,adv:51500,fin:54119,tot:105619,advDate:"",advComp:"01/04/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1470",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1472",v:"Bukhari Agate",advPct:20,adv:16480,fin:30932,tot:47412,advDate:"",advComp:"01/04/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1472",remark:"Need reco sheet urgent"},
+  {a:"Manik",po:"POFZP1466",v:"Humming Bird",advPct:0,adv:0,fin:21000,tot:21000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1468",v:"MJ GLOBAL",advPct:50,adv:42000,fin:42000,tot:84000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1464",v:"PACK N SEAL",advPct:0,adv:0,fin:143165,tot:143165,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1463",v:"Anshul Impex",advPct:0,adv:0,fin:67764,tot:67764,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Harsh Pandey",po:"POFZP1457",v:"Bhalodiya Brothers",advPct:50,adv:484898,fin:466876,tot:951774,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1457",remark:""},
+  {a:"Manik",po:"POFZP1444",v:"DHRUVANS AGATE",advPct:0,adv:0,fin:106103,tot:106103,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1370",v:"Bhalodiya Brothers",advPct:50,adv:235304,fin:230573,tot:465877,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1370",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1346",v:"Nilkanth Agate",advPct:50,adv:525000,fin:554656,tot:1079656,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"nilkanth",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1430",v:"DCG TECH LIMITED",advPct:0,adv:0,fin:23128,tot:23128,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1474",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:3016,tot:3016,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Puneet Pandey",po:"POFZP1440",v:"V.S. BEADS & GEMS",advPct:0,adv:0,fin:6386,tot:6386,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"No CN needed"},
+  {a:"Harsh Pandey",po:"POFZP1388",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:364775,tot:364775,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"1388",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1448",v:"NAND KISHORE & CO.",advPct:60,adv:24638,fin:16426,tot:41064,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1458",v:"Gumsani Handicrafts",advPct:0,adv:0,fin:81076,tot:81076,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1458",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1455",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:24145,tot:24145,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1455",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1348",v:"Cosmic Agate And Minerals",advPct:0,adv:0,fin:101975,tot:101975,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1441",v:"DIVINERETAIL",advPct:0,adv:0,fin:73938,tot:73938,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1489",v:"Trade First",advPct:0,adv:0,fin:10384,tot:10384,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1481",v:"Trade First",advPct:0,adv:0,fin:33748,tot:33748,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1374",v:"Trade First",advPct:50,adv:118000,fin:59000,tot:177000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1373",v:"Nilkanth Agate",advPct:50,adv:262500,fin:274527,tot:537027,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1373",remark:""},
+  {a:"Manik",po:"POFZP1491",v:"BGSG",advPct:0,adv:0,fin:9828,tot:9828,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1437",v:"Krashnavi Agate",advPct:0,adv:0,fin:23927,tot:23927,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1437",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1429",v:"Krashnavi Agate",advPct:0,adv:0,fin:4584,tot:4584,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1429",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1391",v:"PJE INDUSTRIES LLP",advPct:50,adv:3688,fin:4844,tot:8531,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1350",v:"Krashnavi Agate",advPct:50,adv:420000,fin:440301,tot:860301,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1350",remark:""},
+  {a:"Manik",po:"POFZP1479",v:"BOXOPEDIA",advPct:0,adv:0,fin:231000,tot:231000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POASTN0120",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:108166,tot:108166,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POASTN0120",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1318",v:"ASHISH CRYSTALS PVT LTD",advPct:60,adv:1056780,fin:0,tot:1056780,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1318",remark:""},
+  {a:"Rajvir",po:"POFZP1372",v:"Jayveer Crystal Agate",advPct:50,adv:44100,fin:42395,tot:86495,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"ONLY ONE INVOICE & ONE CN"},
+  {a:"Harsh Pandey",po:"POFZP1486",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:54539,tot:54539,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"ONLY ONE INVOICE & ONE CN"},
+  {a:"Harsh Pandey",po:"POFZP1450",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:67662,tot:67662,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1450",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1352",v:"Aariv Impex",advPct:50,adv:430025,fin:414717,tot:844742,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1352",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1492",v:"Aariv Impex",advPct:50,adv:147000,fin:0,tot:147000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"not required",recoLink:"",remark:"HOLD — material on hold"},
+  {a:"Puneet Pandey",po:"POFZP1172",v:"Katyani Collection",advPct:50,adv:398250,fin:300280,tot:698530,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1172",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1272",v:"Katyani Collection",advPct:50,adv:6726,fin:3475,tot:10201,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Puneet Pandey",po:"POFZP1317",v:"Katyani Collection",advPct:0,adv:0,fin:8402,tot:8402,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Puneet Pandey",po:"POFZP1377",v:"Katyani Collection",advPct:50,adv:64900,fin:64334,tot:129234,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Puneet Pandey",po:"POFZP1495",v:"Innov Creaton",advPct:30,adv:260487,fin:607937,tot:868424,advDate:"02-04-2026",advComp:"08/04/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1495",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1496",v:"V.S. BEADS & GEMS",advPct:50,adv:422300,fin:365712,tot:788012,advDate:"03-04-2026",advComp:"10/04/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1496",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1358",v:"ASHISH CRYSTALS PVT LTD",advPct:60,adv:1062960,fin:546580,tot:1609540,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1358",remark:""},
+  {a:"Manik",po:"POFZP1498",v:"BOXOPEDIA",advPct:0,adv:0,fin:315000,tot:315000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1344",v:"Mini India",advPct:30,adv:68796,fin:135230,tot:204026,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1494",v:"Anshul Impex",advPct:0,adv:0,fin:133045,tot:133045,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Manik",po:"POFZP1501",v:"Elite Pack Works",advPct:0,adv:0,fin:33598,tot:33598,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1080",v:"Elite Pack Works",advPct:50,adv:945000,fin:952540,tot:1897540,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1471",v:"ASHISH CRYSTALS PVT LTD",advPct:0,adv:0,fin:24279,tot:24279,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Puneet Pandey",po:"POFZP1503",v:"Aariv Impex",advPct:50,adv:13133,fin:0,tot:13133,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"not required",recoLink:"",remark:"HOLD — explicit hold"},
+  {a:"Puneet Pandey",po:"POFZP1504",v:"V.S. BEADS & GEMS",advPct:50,adv:694349,fin:614238,tot:1308587,advDate:"07-04-2026",advComp:"08/05/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1504",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1511",v:"ASHISH CRYSTALS PVT LTD",advPct:60,adv:152028,fin:90288,tot:242316,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Manik",po:"POFZP1338",v:"BGSG",advPct:0,adv:0,fin:14087,tot:14087,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Manik",po:"POFZP1509",v:"Humming Bird",advPct:0,adv:0,fin:76700,tot:76700,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1369",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:40125,tot:40125,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1369",remark:"Reco sheet need to be done"},
+  {a:"Manik",po:"POFZP1480",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:23170,tot:23170,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 1 invoice and 1 cn"},
+  {a:"Manik",po:"POFZP1442",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:148000,tot:148000,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only 2 invoice and 2 cn"},
+  {a:"Puneet Pandey",po:"POFZP1425",v:"Innov Creaton",advPct:0,adv:0,fin:778512,tot:778512,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1425",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1456",v:"Innov Creaton",advPct:0,adv:0,fin:41066,tot:41066,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1456",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1439",v:"CRYSTAL ORGONITE",advPct:0,adv:0,fin:376877,tot:376877,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1439",remark:"done"},
+  {a:"Puneet Pandey",po:"POFZP1505",v:"Anshul Impex",advPct:0,adv:0,fin:100080,tot:100080,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"Done"},
+  {a:"Puneet Pandey",po:"POFZP1484",v:"Ganpati Gems",advPct:0,adv:0,fin:80987,tot:80987,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"Done"},
+  {a:"Puneet Pandey",po:"POASTN0122",v:"Maya Gemological Laboratory",advPct:0,adv:0,fin:87895,tot:87895,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POASTN0122",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1517",v:"NAND KISHORE & CO.",advPct:0,adv:0,fin:7080,tot:7080,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1386",v:"Innov Creaton",advPct:0,adv:0,fin:32773,tot:32773,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1386",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1384",v:"PR METAL",advPct:0,adv:0,fin:509629,tot:509629,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"PR Metal",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1435",v:"PR METAL",advPct:0,adv:0,fin:1033600,tot:1033600,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1435",remark:""},
+  {a:"Puneet Pandey",po:"POFZP1236",v:"Bukhari Agate",advPct:20,adv:26368,fin:106316,tot:132684,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"POFZP1236",remark:""},
+  {a:"Harsh Pandey",po:"POFZP1408",v:"Nilkanth Agate",advPct:50,adv:105000,fin:112494,tot:217494,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice 1 cn"},
+  {a:"Harsh Pandey",po:"POFZP1438",v:"Nilkanth Agate",advPct:50,adv:525000,fin:235560,tot:760560,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"RECO POFZP1438",remark:"Reco sheet need to be done"},
+  {a:"Harsh Pandey",po:"POFZP1502",v:"Nilkanth Agate",advPct:0,adv:0,fin:5460,tot:5460,advDate:"",advComp:"01/04/2026",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"invoice change"},
+  {a:"Puneet Pandey",po:"POFZP1214",v:"A R INFOTECH GALLERY",advPct:50,adv:108560,fin:104435,tot:212995,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Puneet Pandey",po:"POFZP1521",v:"PACK N SEAL",advPct:0,adv:0,fin:127794,tot:127794,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+  {a:"Harsh Pandey",po:"POFZP1529",v:"Nilkanth Agate",advPct:0,adv:0,fin:16299,tot:16299,advDate:"",advComp:"",finDate:"",finComp:"",finStatus:"Completed",recoLink:"",remark:"only invoice"},
+];
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────
+const INR = n => n < 0 ? '-₹'+Math.abs(Math.round(n)).toLocaleString('en-IN') : '₹'+Math.round(n).toLocaleString('en-IN');
+const CR  = n => (Math.round(n)/10000000).toFixed(2)+'Cr';
+const L   = n => (Math.round(n)/100000).toFixed(1)+'L';
+
+function statusPill(s){
+  if(!s) return '<span class="pill pill-amber">Pending</span>';
+  const l = s.toLowerCase();
+  if(l==='completed') return '<span class="pill pill-green">Completed</span>';
+  if(l==='not required') return '<span class="pill pill-blue">Not required</span>';
+  return '<span class="pill pill-red">'+s+'</span>';
+}
+
+// ─── OVERVIEW METRICS ───────────────────────────────────────────────────────
+function buildOverview(){
+  const totalPaid = POS.reduce((s,r)=>s+r.tot,0);
+  const totalAdv  = POS.reduce((s,r)=>s+r.adv,0);
+  const totalFin  = POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const completed = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
+  const notReq    = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
+  const holds     = POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
+
+  document.getElementById('overviewMetrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total POs</div><div class="metric-val">${POS.length}</div><div class="metric-sub">all assignees</div></div>
+    <div class="metric-card accent-blue"><div class="metric-label">Total paid out</div><div class="metric-val">${CR(totalPaid)}</div><div class="metric-sub">advance + final</div></div>
+    <div class="metric-card accent-purple"><div class="metric-label">Advance paid</div><div class="metric-val">${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
+    <div class="metric-card accent-green"><div class="metric-label">Final paid</div><div class="metric-val">${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
+    <div class="metric-card accent-green"><div class="metric-label">Final completed</div><div class="metric-val">${completed}</div><div class="metric-sub">POs fully closed</div></div>
+    <div class="metric-card accent-amber"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">advance-only POs</div></div>
+    <div class="metric-card accent-red"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">payments blocked</div></div>
+  `;
+}
+
+// ─── ADVANCE METRICS ───────────────────────────────────────────────────────
+function buildAdvanceMetrics(){
+  const withAdv  = POS.filter(r=>r.adv>0);
+  const totalAdv = POS.reduce((s,r)=>s+r.adv,0);
+  const avgPct   = Math.round(POS.filter(r=>r.advPct>0).reduce((s,r)=>s+r.advPct,0)/POS.filter(r=>r.advPct>0).length);
+  document.getElementById('advMetrics').innerHTML = `
+    <div class="metric-card accent-purple"><div class="metric-label">Total advance paid</div><div class="metric-val">${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
+    <div class="metric-card"><div class="metric-label">POs with advance</div><div class="metric-val">${withAdv.length}</div><div class="metric-sub">of ${POS.length} total POs</div></div>
+    <div class="metric-card accent-blue"><div class="metric-label">Avg advance %</div><div class="metric-val">${avgPct}%</div><div class="metric-sub">on POs with advance</div></div>
+    <div class="metric-card accent-green"><div class="metric-label">Adv status</div><div class="metric-val">All done</div><div class="metric-sub">100% completed</div></div>
+  `;
+}
+
+// ─── FINAL METRICS ─────────────────────────────────────────────────────────
+function buildFinalMetrics(){
+  const totalFin  = POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const completed = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
+  const notReq    = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
+  const holds     = POS.filter(r=>r.finStatus.toLowerCase()==='not required' && r.remark.toLowerCase().includes('hold')).length;
+  document.getElementById('finMetrics').innerHTML = `
+    <div class="metric-card accent-green"><div class="metric-label">Total final paid</div><div class="metric-val">${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
+    <div class="metric-card accent-green"><div class="metric-label">Completed</div><div class="metric-val">${completed}</div><div class="metric-sub">POs fully paid</div></div>
+    <div class="metric-card accent-blue"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">advance-only POs</div></div>
+    <div class="metric-card accent-red"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">blocked final payments</div></div>
+  `;
+}
+
+// ─── CHARTS ────────────────────────────────────────────────────────────────
+let charts = {};
+function buildCharts(){
+  // Donut
+  const completed = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
+  const notReq    = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
+  const pending   = POS.length - completed - notReq;
+  const dColors   = ['#16a34a','#2563eb','#dc2626'];
+  const dLabels   = ['Completed','Not required','Pending/Hold'];
+  document.getElementById('donutLegend').innerHTML = dLabels.map((l,i)=>
+    `<span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:${dColors[i]};display:inline-block"></span>${l} (${[completed,notReq,pending][i]})</span>`).join('');
+  if(charts.donut) charts.donut.destroy();
+  charts.donut = new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{labels:dLabels,datasets:[{data:[completed,notReq,pending],backgroundColor:dColors,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+  });
+
+  // Assignee bar
+  const assignees = ['Harsh Pandey','Puneet Pandey','Manik','Rajvir'];
+  const aColors   = ['#2563eb','#16a34a','#d97706','#7c3aed'];
+  const aVals     = assignees.map(a=>parseFloat(CR(POS.filter(r=>r.a===a).reduce((s,r)=>s+r.tot,0))));
+  if(charts.aBar) charts.aBar.destroy();
+  charts.aBar = new Chart(document.getElementById('assigneeBar'),{
+    type:'bar',
+    data:{labels:assignees,datasets:[{data:aVals,backgroundColor:aColors,borderWidth:0,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'Cr'}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'Cr'},grid:{color:'rgba(0,0,0,0.05)'}}}}
+  });
+
+  // Vendor bar (top 8)
+  const vMap = {};
+  POS.forEach(r=>{vMap[r.v]=(vMap[r.v]||0)+r.tot});
+  const top8 = Object.entries(vMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(charts.vBar) charts.vBar.destroy();
+  charts.vBar = new Chart(document.getElementById('vendorBar'),{
+    type:'bar',
+    data:{labels:top8.map(v=>v[0].length>16?v[0].slice(0,16)+'…':v[0]),
+          datasets:[{data:top8.map(v=>parseFloat(L(v[1]))),backgroundColor:'#2563eb',borderWidth:0,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'L'}}},
+      scales:{x:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}}
+  });
+
+  // Split bar (adv vs final per assignee)
+  if(charts.sBar) charts.sBar.destroy();
+  const advVals = assignees.map(a=>parseFloat(L(POS.filter(r=>r.a===a).reduce((s,r)=>s+r.adv,0))));
+  const finVals = assignees.map(a=>parseFloat(L(POS.filter(r=>r.a===a).reduce((s,r)=>s+(r.fin>0?r.fin:0),0))));
+  charts.sBar = new Chart(document.getElementById('splitBar'),{
+    type:'bar',
+    data:{labels:assignees,datasets:[
+      {label:'Advance',data:advVals,backgroundColor:'#7c3aed',borderWidth:0,borderRadius:3},
+      {label:'Final',data:finVals,backgroundColor:'#16a34a',borderWidth:0,borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:10}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}}}}
+  });
+}
+
+// ─── ADVANCE TABLE ─────────────────────────────────────────────────────────
+function renderAdvTable(){
+  const q  = (document.getElementById('advSearch').value||'').toLowerCase();
+  const as = document.getElementById('advAssignee').value;
+  const st = document.getElementById('advStatus').value;
+  const data = POS.filter(r=>{
+    if(q && !r.po.toLowerCase().includes(q) && !r.v.toLowerCase().includes(q)) return false;
+    if(as!=='all' && r.a!==as) return false;
+    if(st==='Completed' && r.adv===0 && r.advPct===0) return false;
+    return true;
+  });
+  document.getElementById('advCount').textContent = data.length+' POs';
+  document.getElementById('advBody').innerHTML = data.map(r=>`
+    <tr>
+      <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=${r.po}" target="_blank">${r.po} ↗</a></td>
+      <td>${r.v}</td>
+      <td>${r.a}</td>
+      <td class="mono">${r.advPct}%</td>
+      <td class="bold">${INR(r.adv)}</td>
+      <td class="muted">${r.advDate||'—'}</td>
+      <td class="muted">${r.advComp||'—'}</td>
+      <td>${r.adv>0||r.advPct===0?'<span class="pill pill-green">Completed</span>':'<span class="pill pill-amber">Pending</span>'}</td>
+      <td class="muted" style="max-width:200px;white-space:normal">${r.remark||'—'}</td>
+    </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No POs match this filter</td></tr>';
+}
+
+// ─── FINAL TABLE ───────────────────────────────────────────────────────────
+function renderFinTable(){
+  const q  = (document.getElementById('finSearch').value||'').toLowerCase();
+  const as = document.getElementById('finAssignee').value;
+  const st = document.getElementById('finStatus').value;
+  const data = POS.filter(r=>{
+    if(q && !r.po.toLowerCase().includes(q) && !r.v.toLowerCase().includes(q)) return false;
+    if(as!=='all' && r.a!==as) return false;
+    if(st!=='all' && r.finStatus.toLowerCase()!==st.toLowerCase()) return false;
+    return true;
+  });
+  document.getElementById('finCount').textContent = data.length+' POs';
+  document.getElementById('finBody').innerHTML = data.map(r=>`
+    <tr>
+      <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=${r.po}" target="_blank">${r.po} ↗</a></td>
+      <td>${r.v}</td>
+      <td>${r.a}</td>
+      <td class="bold">${INR(r.fin)}</td>
+      <td class="bold">${INR(r.tot)}</td>
+      <td class="muted">${r.finDate||'—'}</td>
+      <td class="muted">${r.finComp||'—'}</td>
+      <td>${statusPill(r.finStatus)}</td>
+      <td class="muted" style="max-width:200px;white-space:normal">${r.remark||'—'}</td>
+    </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No POs match this filter</td></tr>';
+}
+
+// ─── VENDOR TABLE ──────────────────────────────────────────────────────────
+const vendorData = (() => {
+  const m = {};
+  POS.forEach(r=>{
+    if(!m[r.v]) m[r.v]={pos:0,tot:0,adv:0,fin:0,advPct:[]};
+    m[r.v].pos++;
+    m[r.v].tot+=r.tot;
+    m[r.v].adv+=r.adv;
+    m[r.v].fin+=r.fin>0?r.fin:0;
+    if(r.advPct>0) m[r.v].advPct.push(r.advPct);
+  });
+  return Object.entries(m).map(([v,d])=>({v,...d,avgAdv:d.advPct.length?Math.round(d.advPct.reduce((a,b)=>a+b,0)/d.advPct.length):0}))
+    .sort((a,b)=>b.tot-a.tot);
+})();
+
+function renderVendorTable(){
+  const q = (document.getElementById('vendorSearch').value||'').toLowerCase();
+  const data = q ? vendorData.filter(d=>d.v.toLowerCase().includes(q)) : vendorData;
+  document.getElementById('vendorCount').textContent = data.length+' vendors';
+  document.getElementById('vendorBody').innerHTML = data.map(d=>{
+    const advPct = d.tot>0 ? Math.round(d.adv/d.tot*100) : 0;
+    const finPct = 100 - advPct;
+    return `<tr style="cursor:pointer" onclick="openVendorModal('${d.v.replace(/'/g,"\\'")}')">
+      <td style="font-weight:500">${d.v}</td>
+      <td style="text-align:center">${d.pos}</td>
+      <td class="bold">${INR(d.tot)}</td>
+      <td style="color:var(--purple)">${INR(d.adv)}</td>
+      <td style="color:var(--green)">${INR(d.fin)}</td>
+      <td class="mono">${d.avgAdv}%</td>
+      <td style="width:100px">
+        <div class="pay-split">
+          <div class="adv" style="width:${advPct}%"></div>
+          <div class="fin" style="width:${finPct}%"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">
+          <span style="color:var(--purple)">${advPct}% adv</span> / <span style="color:var(--green)">${finPct}% fin</span>
+        </div>
+      </td>
+      <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();openVendorModal('${d.v.replace(/'/g,"\\'")}')">View POs →</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── VENDOR MODAL ──────────────────────────────────────────────────────────
+let currentVendor = '';
+function openVendorModal(vendorName){
+  currentVendor = vendorName;
+  const pos = POS.filter(r=>r.v===vendorName);
+  const totPaid = pos.reduce((s,r)=>s+r.tot,0);
+  const totAdv  = pos.reduce((s,r)=>s+r.adv,0);
+  const totFin  = pos.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+
+  document.getElementById('modalVendorName').textContent = vendorName;
+  document.getElementById('modalVendorSub').textContent = pos.length+' POs · '+INR(totPaid)+' total paid';
+  document.getElementById('modalMetrics').innerHTML = `
+    <div class="m-stat"><div class="m-stat-label">POs</div><div class="m-stat-val">${pos.length}</div></div>
+    <div class="m-stat"><div class="m-stat-label">Total paid</div><div class="m-stat-val">${INR(totPaid)}</div></div>
+    <div class="m-stat"><div class="m-stat-label" style="color:var(--purple)">Advance</div><div class="m-stat-val" style="color:var(--purple)">${INR(totAdv)}</div></div>
+    <div class="m-stat"><div class="m-stat-label" style="color:var(--green)">Final</div><div class="m-stat-val" style="color:var(--green)">${INR(totFin)}</div></div>
+  `;
+  document.getElementById('modalPOBody').innerHTML = pos.map(r=>`
+    <tr>
+      <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=${r.po}" target="_blank">${r.po} ↗</a></td>
+      <td>${r.a}</td>
+      <td style="color:var(--purple)">${INR(r.adv)}</td>
+      <td style="color:var(--green)">${INR(r.fin)}</td>
+      <td class="bold">${INR(r.tot)}</td>
+      <td>${statusPill(r.finStatus)}</td>
+      <td>${r.recoLink?`<a href="https://drive.google.com/drive/search?q=${encodeURIComponent(r.recoLink)}" target="_blank" style="color:var(--blue);font-size:11px">View ↗</a>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td class="muted" style="font-size:12px;max-width:160px;white-space:normal">${r.remark||'—'}</td>
+    </tr>`).join('');
+
+  // Reset Uniware section
+  document.getElementById('uniwareVendorData').innerHTML = `<div style="font-size:12px;color:var(--text3);padding:.75rem;background:var(--bg3);border-radius:var(--r);text-align:center">Click "Fetch from Uniware" to load live open PO quantities for this vendor</div>`;
+
+  document.getElementById('vendorModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeVendorModal(){
+  document.getElementById('vendorModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function closeModal(e){
+  if(e.target.id==='vendorModal') closeVendorModal();
+}
+
+// ─── UNIWARE FETCH ─────────────────────────────────────────────────────────
+async function fetchVendorUniwares(vendorName){
+  const el = document.getElementById('uniwareVendorData');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div>Fetching open POs from Uniware…</div>';
+  try {
+    const resp = await fetch('https://weekly-dashboard-yxe7.vercel.app/api/uniware?action=openPOs&vendor='+encodeURIComponent(vendorName));
+    if(!resp.ok) throw new Error('API error '+resp.status);
+    const data = await resp.json();
+    if(!data.pos || data.pos.length===0){
+      el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:.75rem;background:var(--bg3);border-radius:var(--r);text-align:center">No open POs found for this vendor in Uniware</div>';
+      return;
+    }
+    el.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>PO No.</th><th>Status</th><th>Created</th><th>Item</th><th>Ordered qty</th><th>Received qty</th><th>Pending qty</th><th>Value</th></tr></thead>
+      <tbody>${data.pos.map(p=>`<tr>
+        <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=${p.code}" target="_blank">${p.code} ↗</a></td>
+        <td>${statusPill(p.status)}</td>
+        <td class="muted">${p.created||'—'}</td>
+        <td style="max-width:160px;white-space:normal;font-size:12px">${p.item||'—'}</td>
+        <td class="mono bold">${p.ordered||0}</td>
+        <td class="mono" style="color:var(--green)">${p.received||0}</td>
+        <td class="mono" style="color:${(p.pending||0)>0?'var(--red)':'var(--text3)'};font-weight:${(p.pending||0)>0?'600':'400'}">${p.pending||0}</td>
+        <td class="bold">${p.value?INR(p.value):'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:12px;background:var(--red-dim);color:var(--red);padding:.75rem;border-radius:var(--r);border:1px solid var(--red-mid)">
+      <strong>Could not fetch from Uniware.</strong> The API may need a fresh token.<br>
+      <span style="font-size:11px;color:var(--text3)">Error: ${e.message}</span><br><br>
+      <a href="https://astrotalk.unicommerce.com/purchaseOrder/list?vendorName=${encodeURIComponent(vendorName)}" target="_blank" style="color:var(--blue)">View directly in Unicommerce ↗</a>
+    </div>`;
+  }
+}
+
+// ─── HARI POs ──────────────────────────────────────────────────────────────
+async function fetchHariPOs(){
+  try {
+    const resp = await fetch('https://weekly-dashboard-yxe7.vercel.app/api/uniware?action=posByAssignee&assignee=Hari');
+    if(!resp.ok) throw new Error('API error '+resp.status);
+    const data = await resp.json();
+    document.getElementById('hariLoader').style.display = 'none';
+    document.getElementById('hariTable').style.display = 'block';
+    if(!data.pos || data.pos.length===0){
+      document.getElementById('hariBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--text3)">No POs found for Hari in Uniware</td></tr>';
+      return;
+    }
+    document.getElementById('hariBody').innerHTML = data.pos.map(p=>`<tr>
+      <td><a class="po-link" href="https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode=${p.code}" target="_blank">${p.code} ↗</a></td>
+      <td>${p.vendor||'—'}</td>
+      <td>${statusPill(p.status)}</td>
+      <td class="muted">${p.created||'—'}</td>
+      <td class="bold">${p.value?INR(p.value):'—'}</td>
+      <td>${p.grnStatus||'—'}</td>
+      <td><button class="sync-btn" style="font-size:11px;padding:4px 10px" onclick="checkPO('${p.code}')">Open in Uniware</button></td>
+    </tr>`).join('');
+  } catch(e){
+    document.getElementById('hariLoader').innerHTML = `<div style="font-size:12px;color:var(--red)">Failed to load: ${e.message}. <a href="https://astrotalk.unicommerce.com/purchaseOrder/list" target="_blank" style="color:var(--blue)">Open Unicommerce ↗</a></div>`;
+  }
+}
+
+// ─── SYNC / UTILS ──────────────────────────────────────────────────────────
+function checkPO(poCode){
+  window.open('https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+poCode,'_blank');
+}
+
+function syncUniwares(){
+  const btn = document.querySelector('.sync-btn');
+  btn.textContent = 'Syncing…';
+  btn.disabled = true;
+  setTimeout(()=>{
+    document.getElementById('syncLabel').textContent = 'Last synced: just now';
+    btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M1 8a7 7 0 1 0 7-7"/><polyline points="1,1 1,8 8,8"/></svg> Sync Uniware';
+    btn.disabled = false;
+  }, 1500);
+}
+
+// ─── TABS ──────────────────────────────────────────────────────────────────
+function switchTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='overview') buildCharts();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+buildOverview();
+buildAdvanceMetrics();
+buildFinalMetrics();
+buildCharts();
+renderAdvTable();
+renderFinTable();
+renderVendorTable();
+fetchHariPOs();
+
+// Update date
+document.getElementById('syncLabel').textContent = 'Last synced: ' + new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+</script>
+</body>
+</html>

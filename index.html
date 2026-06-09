@@ -81,6 +81,9 @@ iframe{width:100%;height:100%;border:none;display:block}
     <button class="tab-btn" onclick="show('packaging',this)">
       <span class="tab-icon">📦</span>Packaging
     </button>
+    <button class="tab-btn" onclick="show('finance',this)">
+      <span class="tab-icon">💰</span>Finance
+    </button>
     <button class="tab-btn" onclick="show('certificates',this)">
       <span class="tab-icon">📜</span>Certificates
     </button>
@@ -121,6 +124,18 @@ iframe{width:100%;height:100%;border:none;display:block}
             title="Certificate Inventory"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
             onload="loaded('certificates')"></iframe>
+  </div>
+
+
+  <div class="frame-wrap" id="wrap-finance">
+    <div class="frame-loader" id="loader-finance">
+      <div class="spinner"></div>
+      <div class="loader-text">Loading Finance dashboard…</div>
+    </div>
+    <iframe src="finance.html"
+            title="Finance — PO Payments"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+            onload="loaded('finance')"></iframe>
   </div>
 
 </div>
