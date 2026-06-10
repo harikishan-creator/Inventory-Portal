@@ -544,28 +544,62 @@ function buildAll(){
 
 // ── OVERVIEW METRICS ──────────────────────────────────────────────────────
 function buildOverviewMetrics(){
-  const total=POS.reduce((s,r)=>s+r.tot,0);
-  const totalAdv=POS.reduce((s,r)=>s+r.adv,0);
-  const totalFin=POS.reduce((s,r)=>s+r.fin,0);
-  const comp=POS.filter(r=>r.finStatus==='Completed').length;
-  const notReq=POS.filter(r=>r.finStatus==='not required').length;
-  const pending=POS.filter(r=>r.finStatus==='Pending').length;
-  const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
-  const unk=POS.filter(r=>r.finStatus==='Unknown').length;
-  const holds=POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
+  const total    = POS.reduce((s,r)=>s+r.tot,0);
+  const totalAdv = POS.reduce((s,r)=>s+r.adv,0);
+  const totalFin = POS.reduce((s,r)=>s+r.fin,0);
+  // STATUS — these 5 are mutually exclusive and must sum to POS.length
+  const comp    = POS.filter(r=>r.finStatus==='Completed').length;
+  const notReq  = POS.filter(r=>r.finStatus==='not required').length;
+  const pending = POS.filter(r=>r.finStatus==='Pending').length;
+  const upl     = POS.filter(r=>r.finStatus==='Uploaded').length;
+  const unk     = POS.filter(r=>r.finStatus==='Unknown').length;
+  const sum     = comp+notReq+pending+upl+unk;
+  const ok      = sum===POS.length;
+  // On Hold = informational only (subset of above, do NOT add to sum)
+  const holds   = POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
   const assignees=[...new Set(POS.map(r=>r.a).filter(Boolean))];
-  const sum=comp+notReq+pending+upl+unk;
-  const ok=sum===POS.length;
+
   document.getElementById('ovMetrics').innerHTML=`
-    <div class="metric-card passive"><div class="metric-label">Total POs</div><div class="metric-val">${POS.length}</div><div class="metric-sub">${assignees.length} assignees · <span style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓ match':'⚠ sum='+sum}</span></div></div>
-    <div class="metric-card passive accent-blue"><div class="metric-label">Total paid out</div><div class="metric-val">₹${CR(total)}</div><div class="metric-sub">${L(total)}</div></div>
-    <div class="metric-card passive accent-purple"><div class="metric-label">Advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
-    <div class="metric-card passive accent-green"><div class="metric-label">Final payable</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
-    <div class="metric-card accent-green" onclick="gotoFin('Completed')"><div class="metric-label">Final completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to view →</div></div>
-    <div class="metric-card accent-blue" onclick="gotoFin('Uploaded')"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to view →</div></div>
-    <div class="metric-card accent-amber" onclick="gotoFin('Pending')"><div class="metric-label">Final pending</div><div class="metric-val">${pending}</div><div class="metric-sub">click to view →</div></div>
-    <div class="metric-card accent-red" onclick="switchTab('actions',document.querySelector('.nav-btn:nth-child(5)'))"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">click to view →</div></div>
-    <div class="metric-card" onclick="gotoFin('not required')"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">click to view →</div></div>
+    <div class="metric-card passive">
+      <div class="metric-label">Total POs</div>
+      <div class="metric-val">${POS.length}</div>
+      <div class="metric-sub">${assignees.length} assignees · <span style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓ match':'⚠ sum='+sum}</span></div>
+    </div>
+    <div class="metric-card passive accent-blue">
+      <div class="metric-label">Total paid out</div>
+      <div class="metric-val">₹${CR(total)}</div>
+      <div class="metric-sub">${L(total)}</div>
+    </div>
+    <div class="metric-card passive accent-purple">
+      <div class="metric-label">Advance paid</div>
+      <div class="metric-val">₹${CR(totalAdv)}</div>
+      <div class="metric-sub">${L(totalAdv)}</div>
+    </div>
+    <div class="metric-card passive accent-green">
+      <div class="metric-label">Final payable</div>
+      <div class="metric-val">₹${CR(totalFin)}</div>
+      <div class="metric-sub">${L(totalFin)}</div>
+    </div>
+    <div class="metric-card accent-green" onclick="gotoFin('Completed')">
+      <div class="metric-label">Completed</div>
+      <div class="metric-val">${comp}</div>
+      <div class="metric-sub">click to view →</div>
+    </div>
+    <div class="metric-card accent-blue" onclick="gotoFin('Uploaded')">
+      <div class="metric-label">Uploaded</div>
+      <div class="metric-val">${upl}</div>
+      <div class="metric-sub">click to view →</div>
+    </div>
+    <div class="metric-card accent-amber" onclick="gotoFin('Pending')">
+      <div class="metric-label">Pending</div>
+      <div class="metric-val">${pending}</div>
+      <div class="metric-sub">${holds} on hold (subset)</div>
+    </div>
+    <div class="metric-card" onclick="gotoFin('not required')">
+      <div class="metric-label">Not required</div>
+      <div class="metric-val">${notReq}</div>
+      <div class="metric-sub">click to view →</div>
+    </div>
     ${unk>0?`<div class="metric-card accent-red" onclick="gotoFin('Unknown')"><div class="metric-label">Unknown (blank)</div><div class="metric-val">${unk}</div><div class="metric-sub">no status in sheet</div></div>`:''}
   `;
 }
