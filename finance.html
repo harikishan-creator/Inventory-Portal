@@ -19,7 +19,6 @@
   --amber:#d97706;--amber-dim:#fffbeb;--amber-mid:#fde68a;
   --red:#dc2626;--red-dim:#fef2f2;--red-mid:#fecaca;
   --purple:#7c3aed;--purple-dim:#faf5ff;--purple-mid:#ddd6fe;
-  --teal:#0d9488;--orange:#ea580c;
   --r:8px;--rl:12px;
   font-family:'DM Sans',sans-serif;
 }
@@ -31,18 +30,16 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 .header{background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
 .header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;height:54px;gap:10px}
 .logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(37,99,235,0.3)}
-.logo-title{font-weight:600;font-size:15px;color:var(--text)}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-title{font-weight:600;font-size:15px}
 .logo-badge{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
-
 nav{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px;margin:0 auto}
 .nav-btn{display:flex;align-items:center;gap:5px;padding:5px 14px;border-radius:7px;background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
 .nav-btn.active{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
 .nav-btn:hover:not(.active){background:rgba(255,255,255,0.6)}
-
 .header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .sync-status{font-size:11px;color:var(--text3);white-space:nowrap}
-.sync-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;background:var(--blue);border:none;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 1px 4px rgba(37,99,235,0.3);transition:all .15s;white-space:nowrap}
+.sync-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;background:var(--blue);border:none;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
 .sync-btn:hover{background:#1d4ed8}
 .sync-btn:disabled{opacity:.6;cursor:not-allowed}
 .spin{animation:spin .7s linear infinite;display:inline-block}
@@ -51,10 +48,13 @@ nav{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px;mar
 .content{max-width:1440px;margin:0 auto;padding:1.25rem 1.5rem}
 .panel{display:none}.panel.active{display:block}
 
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:1.25rem}
-.metric-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.1rem}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.25rem}
+.metric-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:.9rem 1rem;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.metric-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.1);transform:translateY(-1px)}
+.metric-card.passive{cursor:default}
+.metric-card.passive:hover{box-shadow:none;transform:none}
 .metric-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
-.metric-val{font-size:22px;font-weight:600;color:var(--text);line-height:1.2}
+.metric-val{font-size:22px;font-weight:600;line-height:1.2}
 .metric-sub{font-size:11px;color:var(--text3);margin-top:3px}
 .accent-green .metric-val{color:var(--green)}
 .accent-red .metric-val{color:var(--red)}
@@ -62,8 +62,8 @@ nav{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px;mar
 .accent-blue .metric-val{color:var(--blue)}
 .accent-purple .metric-val{color:var(--purple)}
 
-.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:1.5rem}
-.section-title{font-size:14px;font-weight:600;color:var(--text)}
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:1.5rem;flex-wrap:wrap}
+.section-title{font-size:14px;font-weight:600}
 .pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px}
 .pill-red{background:var(--red-dim);color:var(--red)}
 .pill-amber{background:var(--amber-dim);color:var(--amber)}
@@ -73,62 +73,76 @@ nav{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px;mar
 .pill-gray{background:var(--bg3);color:var(--text2)}
 
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
-.tbl-wrap{overflow-x:auto}
+.tbl-wrap{overflow-x:auto;max-height:520px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{font-size:11px;font-weight:600;color:var(--text3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none}
+thead th{font-size:11px;font-weight:600;color:var(--text3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1}
 thead th:hover{color:var(--text2)}
-thead th .sort-arrow{font-size:9px;margin-left:3px;opacity:0.5}
-thead th.sorted .sort-arrow{opacity:1}
-tbody td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--bg3)}
 .po-link{color:var(--blue);text-decoration:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:500}
 .po-link:hover{text-decoration:underline}
 td.mono{font-family:'DM Mono',monospace;font-size:12px}
-td.amt{font-weight:400;font-family:'DM Mono',monospace;font-size:12px}
+td.amt{font-family:'DM Mono',monospace;font-size:12px}
+td.neg{color:var(--red);font-family:'DM Mono',monospace;font-size:12px}
 td.muted{color:var(--text2);font-size:12px}
-td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-size:12px}
 
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
 .chart-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem}
 .chart-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
-@media(max-width:700px){.charts-row{grid-template-columns:1fr}}
+@media(max-width:768px){.charts-row{grid-template-columns:1fr}}
 
-.search-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.search-row input,.search-row select{padding:6px 11px;border-radius:7px;border:1px solid var(--border2);font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
-.search-row input:focus,.search-row select:focus{border-color:var(--blue)}
-.search-row input[type=text]{width:220px}
-.result-count{font-size:12px;color:var(--text3);margin-left:auto}
+/* FILTER BAR */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:10px 14px}
+.filter-bar label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.filter-bar select,.filter-bar input[type=text],.filter-bar input[type=date]{
+  padding:5px 9px;border-radius:6px;border:1px solid var(--border2);
+  font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;
+  outline:none;transition:border-color .15s
+}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--blue)}
+.filter-bar input[type=text]{min-width:160px}
+.filter-bar .sep{width:1px;height:20px;background:var(--border2);margin:0 4px}
+.result-count{font-size:12px;color:var(--text3);margin-left:auto;white-space:nowrap}
+.clear-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;color:var(--text2);font-family:'DM Sans',sans-serif}
+.clear-btn:hover{background:var(--bg4)}
 
-.pay-split{display:flex;height:5px;border-radius:4px;overflow:hidden;margin:3px 0;background:var(--bg4)}
+/* MONTH NAV */
+.month-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s}
+.month-chip:hover,.month-chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.month-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+
+/* PAYMENT SPLIT BAR */
+.pay-split{display:flex;height:5px;border-radius:4px;overflow:hidden;background:var(--bg4)}
 .pay-split .adv-bar{background:var(--purple)}
 .pay-split .fin-bar{background:var(--green)}
 
+/* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;backdrop-filter:blur(4px)}
 .overlay.hidden{display:none}
-.modal{background:#fff;border-radius:16px;width:min(940px,100%);box-shadow:0 24px 80px rgba(0,0,0,0.22);flex-shrink:0}
+.modal{background:#fff;border-radius:16px;width:min(960px,100%);box-shadow:0 24px 80px rgba(0,0,0,0.22);flex-shrink:0}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
-.modal-title{font-size:16px;font-weight:600;color:var(--text)}
+.modal-title{font-size:16px;font-weight:600}
 .modal-sub{font-size:12px;color:var(--text3);margin-top:2px}
 .close-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border2);background:#fff;cursor:pointer;font-size:16px;color:var(--text2);display:flex;align-items:center;justify-content:center}
 .close-btn:hover{background:var(--bg3)}
 .modal-body{padding:1.25rem 1.5rem}
-.modal-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.modal-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1.25rem}
 .m-stat{background:var(--bg3);border-radius:8px;padding:.75rem 1rem}
 .m-stat-label{font-size:11px;color:var(--text3);margin-bottom:3px}
-.m-stat-val{font-size:15px;font-weight:600;color:var(--text)}
+.m-stat-val{font-size:15px;font-weight:600}
 
+/* GLOBAL LOADER */
 .global-loader{position:fixed;inset:0;background:#f5f6f8;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .global-loader.hidden{display:none}
 .big-spinner{width:40px;height:40px;border:3px solid var(--bg4);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-.loader-title{font-size:15px;font-weight:500;color:var(--text)}
+.loader-title{font-size:15px;font-weight:500}
 .loader-sub{font-size:13px;color:var(--text3)}
 .error-banner{background:var(--red-dim);border:1px solid var(--red-mid);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:1rem;display:none}
 </style>
 </head>
 <body>
 
-<!-- GLOBAL LOADER -->
 <div class="global-loader" id="globalLoader">
   <div class="big-spinner"></div>
   <div class="loader-title">Loading Finance dashboard</div>
@@ -142,10 +156,11 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
       <span class="logo-title">Finance</span>
       <span class="logo-badge">PO Payments</span>
     </div>
-    <nav id="mainNav">
+    <nav>
       <button class="nav-btn active" onclick="switchTab('overview',this)">Overview</button>
       <button class="nav-btn" onclick="switchTab('advance',this)">Advance</button>
       <button class="nav-btn" onclick="switchTab('final',this)">Final</button>
+      <button class="nav-btn" onclick="switchTab('monthly',this)">Monthly</button>
       <button class="nav-btn" onclick="switchTab('actions',this)">Action Items</button>
       <button class="nav-btn" onclick="switchTab('vendors',this)">Vendors</button>
     </nav>
@@ -159,61 +174,73 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
 <div class="content">
   <div class="error-banner" id="errBanner"></div>
 
-  <!-- OVERVIEW -->
+  <!-- ── OVERVIEW ── -->
   <div class="panel active" id="panel-overview">
     <div class="metric-grid" id="ovMetrics"></div>
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">Final payment status</div>
+        <div class="chart-title">Final payment status <span style="font-size:10px;color:var(--text3);font-weight:400">(click to filter)</span></div>
         <div id="donutLegend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text2)"></div>
-        <div style="position:relative;height:200px"><canvas id="donutChart" role="img" aria-label="Final payment status"></canvas></div>
+        <div style="position:relative;height:190px"><canvas id="donutChart"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Payment by assignee (₹ Cr)</div>
-        <div style="position:relative;height:200px"><canvas id="assigneeChart" role="img" aria-label="Payment by assignee"></canvas></div>
+        <div class="chart-title">Payment by assignee (₹ Cr) <span style="font-size:10px;color:var(--text3);font-weight:400">(click to filter)</span></div>
+        <div style="position:relative;height:220px"><canvas id="assigneeChart"></canvas></div>
       </div>
     </div>
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">Top 8 vendors by total payment</div>
-        <div style="position:relative;height:260px"><canvas id="vendorChart" role="img" aria-label="Top vendors"></canvas></div>
+        <div class="chart-title">Top 8 vendors by total payment <span style="font-size:10px;color:var(--text3);font-weight:400">(click to open vendor)</span></div>
+        <div style="position:relative;height:260px"><canvas id="vendorChart"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Advance vs final split by assignee</div>
-        <div style="position:relative;height:260px"><canvas id="splitChart" role="img" aria-label="Advance vs final split"></canvas></div>
+        <div class="chart-title">Monthly POs & payment value <span style="font-size:10px;color:var(--text3);font-weight:400">(click month to drill down)</span></div>
+        <div style="position:relative;height:260px"><canvas id="monthChart"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- ADVANCE -->
+  <!-- ── ADVANCE ── -->
   <div class="panel" id="panel-advance">
     <div class="metric-grid" id="advMetrics"></div>
     <div class="section-hdr" style="margin-top:0">
       <span class="section-title">Advance payments</span>
       <span class="pill pill-purple" id="advPill">—</span>
     </div>
-    <div class="search-row">
-      <input type="text" id="advQ" placeholder="Search PO / vendor…" oninput="renderAdv()"/>
-      <select id="advAssignee" onchange="renderAdv()"><option value="">All assignees</option></select>
+    <div class="filter-bar" id="advFilters">
+      <label>Search</label>
+      <input type="text" id="advQ" placeholder="PO / vendor…" oninput="renderAdv()"/>
+      <div class="sep"></div>
+      <label>Assignee</label>
+      <select id="advAssignee" onchange="renderAdv()"><option value="">All</option></select>
+      <div class="sep"></div>
+      <label>Status</label>
       <select id="advStatus" onchange="renderAdv()">
-        <option value="">All statuses</option>
-        <option value="Completed">Completed</option>
-        <option value="Uploaded">Uploaded</option>
-        <option value="Pending">Pending</option>
+        <option value="">All</option>
+        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option>
       </select>
+      <div class="sep"></div>
+      <label>Vendor</label>
+      <select id="advVendor" onchange="renderAdv()"><option value="">All</option></select>
+      <div class="sep"></div>
+      <label>From</label>
+      <input type="date" id="advFrom" onchange="renderAdv()"/>
+      <label>To</label>
+      <input type="date" id="advTo" onchange="renderAdv()"/>
+      <button class="clear-btn" onclick="clearFilters('adv')">Clear</button>
       <span class="result-count" id="advCount"></span>
     </div>
     <div class="card"><div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th onclick="sortTable('adv','po')">PO No. <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','v')">Vendor <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','a')">Assignee <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','advPct')">Adv % <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','adv')">Advance paid (₹) <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','advDate')">Assign date <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','advComp')">Completed date <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('adv','advStatus')">Status <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('adv','po')">PO No.</th>
+          <th onclick="sortTable('adv','v')">Vendor</th>
+          <th onclick="sortTable('adv','a')">Assignee</th>
+          <th onclick="sortTable('adv','advPct')">Adv %</th>
+          <th onclick="sortTable('adv','adv')">Advance (₹)</th>
+          <th onclick="sortTable('adv','advDate')">Assign date</th>
+          <th onclick="sortTable('adv','advComp')">Completed date</th>
+          <th onclick="sortTable('adv','advStatus')">Status</th>
           <th>Remark</th>
         </tr></thead>
         <tbody id="advBody"></tbody>
@@ -221,35 +248,47 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
     </div></div>
   </div>
 
-  <!-- FINAL -->
+  <!-- ── FINAL ── -->
   <div class="panel" id="panel-final">
     <div class="metric-grid" id="finMetrics"></div>
     <div class="section-hdr" style="margin-top:0">
       <span class="section-title">Final payments</span>
       <span class="pill pill-green" id="finPill">—</span>
     </div>
-    <div class="search-row">
-      <input type="text" id="finQ" placeholder="Search PO / vendor…" oninput="renderFin()"/>
-      <select id="finAssignee" onchange="renderFin()"><option value="">All assignees</option></select>
+    <div class="filter-bar">
+      <label>Search</label>
+      <input type="text" id="finQ" placeholder="PO / vendor…" oninput="renderFin()"/>
+      <div class="sep"></div>
+      <label>Assignee</label>
+      <select id="finAssignee" onchange="renderFin()"><option value="">All</option></select>
+      <div class="sep"></div>
+      <label>Status</label>
       <select id="finStatus" onchange="renderFin()">
-        <option value="">All statuses</option>
-        <option value="Completed">Completed</option>
-        <option value="Pending">Pending</option>
-        <option value="not required">Not required</option>
+        <option value="">All</option>
+        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option>
       </select>
+      <div class="sep"></div>
+      <label>Vendor</label>
+      <select id="finVendor" onchange="renderFin()"><option value="">All</option></select>
+      <div class="sep"></div>
+      <label>From</label>
+      <input type="date" id="finFrom" onchange="renderFin()"/>
+      <label>To</label>
+      <input type="date" id="finTo" onchange="renderFin()"/>
+      <button class="clear-btn" onclick="clearFilters('fin')">Clear</button>
       <span class="result-count" id="finCount"></span>
     </div>
     <div class="card"><div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th onclick="sortTable('fin','po')">PO No. <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','v')">Vendor <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','a')">Assignee <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','fin')">Final payable (₹) <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','tot')">Total (₹) <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','finDate')">Assign date <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','finComp')">Completed date <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('fin','finStatus')">Status <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('fin','po')">PO No.</th>
+          <th onclick="sortTable('fin','v')">Vendor</th>
+          <th onclick="sortTable('fin','a')">Assignee</th>
+          <th onclick="sortTable('fin','fin')">Final payable (₹)</th>
+          <th onclick="sortTable('fin','tot')">Total (₹)</th>
+          <th onclick="sortTable('fin','finDate')">Assign date</th>
+          <th onclick="sortTable('fin','finComp')">Completed date</th>
+          <th onclick="sortTable('fin','finStatus')">Status</th>
           <th>Remark</th>
         </tr></thead>
         <tbody id="finBody"></tbody>
@@ -257,66 +296,93 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
     </div></div>
   </div>
 
-  <!-- ACTIONS -->
+  <!-- ── MONTHLY ── -->
+  <div class="panel" id="panel-monthly">
+    <div class="metric-grid" id="monthMetrics"></div>
+    <div class="section-hdr" style="margin-top:0">
+      <span class="section-title">Month-wise breakdown</span>
+      <span class="pill pill-blue" id="monthPill">—</span>
+    </div>
+    <div class="month-chips" id="monthChips"></div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">POs per month</div>
+        <div style="position:relative;height:200px"><canvas id="monthPoChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Payment value per month (₹ L)</div>
+        <div style="position:relative;height:200px"><canvas id="monthValChart"></canvas></div>
+      </div>
+    </div>
+    <div class="section-hdr">
+      <span class="section-title" id="monthTableTitle">All POs</span>
+      <span class="pill pill-blue" id="monthTablePill">—</span>
+    </div>
+    <div class="card"><div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>PO No.</th><th>Vendor</th><th>Assignee</th>
+          <th>Advance (₹)</th><th>Final (₹)</th><th>Total (₹)</th>
+          <th>Adv assign</th><th>Fin assign</th>
+          <th>Adv status</th><th>Final status</th><th>Remark</th>
+        </tr></thead>
+        <tbody id="monthBody"></tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <!-- ── ACTION ITEMS ── -->
   <div class="panel" id="panel-actions">
     <div class="section-hdr" style="margin-top:0">
       <span class="section-title">Payments on hold / not required</span>
       <span class="pill pill-red" id="holdPill">—</span>
     </div>
-    <div class="card" style="margin-bottom:1.25rem"><div class="tbl-wrap">
-      <table>
-        <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Advance paid (₹)</th><th>Final payable (₹)</th><th>Total (₹)</th><th>Status</th><th>Remark</th></tr></thead>
-        <tbody id="holdBody"></tbody>
-      </table>
-    </div></div>
+    <div class="card" style="margin-bottom:1.25rem"><div class="tbl-wrap"><table>
+      <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Advance (₹)</th><th>Final (₹)</th><th>Total (₹)</th><th>Status</th><th>Remark</th></tr></thead>
+      <tbody id="holdBody"></tbody>
+    </table></div></div>
 
     <div class="section-hdr">
-      <span class="section-title">Final payment pending</span>
+      <span class="section-title">Final payment pending / uploaded</span>
       <span class="pill pill-amber" id="finPendingPill">—</span>
     </div>
-    <div class="card" style="margin-bottom:1.25rem"><div class="tbl-wrap">
-      <table>
-        <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Final payable (₹)</th><th>Final assign date</th><th>Remark</th></tr></thead>
-        <tbody id="finPendingBody"></tbody>
-      </table>
-    </div></div>
+    <div class="card" style="margin-bottom:1.25rem"><div class="tbl-wrap"><table>
+      <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Final (₹)</th><th>Fin assign date</th><th>Status</th><th>Remark</th></tr></thead>
+      <tbody id="finPendingBody"></tbody>
+    </table></div></div>
 
     <div class="section-hdr">
       <span class="section-title">Advance payment pending / uploaded</span>
       <span class="pill pill-blue" id="advPendingPill">—</span>
     </div>
-    <div class="card"><div class="tbl-wrap">
-      <table>
-        <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Advance (₹)</th><th>Adv %</th><th>Adv assign date</th><th>Status</th><th>Remark</th></tr></thead>
-        <tbody id="advPendingBody"></tbody>
-      </table>
-    </div></div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>PO No.</th><th>Vendor</th><th>Assignee</th><th>Advance (₹)</th><th>Adv %</th><th>Adv assign date</th><th>Status</th><th>Remark</th></tr></thead>
+      <tbody id="advPendingBody"></tbody>
+    </table></div></div>
   </div>
 
-  <!-- VENDORS -->
+  <!-- ── VENDORS ── -->
   <div class="panel" id="panel-vendors">
     <div class="section-hdr" style="margin-top:0">
       <span class="section-title">Vendor payment summary</span>
       <span class="pill pill-blue" id="vendorPill">—</span>
     </div>
-    <div class="search-row">
-      <input type="text" id="vendorQ" placeholder="Search vendor…" oninput="renderVendors()"/>
+    <div class="filter-bar">
+      <label>Search</label>
+      <input type="text" id="vendorQ" placeholder="Vendor name…" oninput="renderVendors()"/>
       <span class="result-count" id="vendorCount"></span>
     </div>
-    <div class="card"><div class="tbl-wrap">
-      <table>
-        <thead><tr>
-          <th onclick="sortTable('vendor','v')">Vendor <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('vendor','pos')">POs <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('vendor','tot')">Total paid (₹) <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('vendor','adv')">Advance (₹) <span class="sort-arrow">↕</span></th>
-          <th onclick="sortTable('vendor','fin')">Final (₹) <span class="sort-arrow">↕</span></th>
-          <th>Split</th>
-          <th></th>
-        </tr></thead>
-        <tbody id="vendorBody"></tbody>
-      </table>
-    </div></div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr>
+        <th onclick="sortTable('vendor','v')">Vendor</th>
+        <th onclick="sortTable('vendor','pos')">POs</th>
+        <th onclick="sortTable('vendor','tot')">Total (₹)</th>
+        <th onclick="sortTable('vendor','adv')">Advance (₹)</th>
+        <th onclick="sortTable('vendor','fin')">Final (₹)</th>
+        <th>Split</th><th></th>
+      </tr></thead>
+      <tbody id="vendorBody"></tbody>
+    </table></div></div>
   </div>
 </div>
 
@@ -332,9 +398,9 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
     </div>
     <div class="modal-body">
       <div class="modal-metrics" id="modalStats"></div>
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">All POs</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">All POs</div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>PO No.</th><th>Assignee</th><th>Adv %</th><th>Advance (₹)</th><th>Final (₹)</th><th>Total (₹)</th><th>Adv status</th><th>Final status</th><th>Reco sheet</th><th>Remark</th></tr></thead>
+        <thead><tr><th>PO No.</th><th>Assignee</th><th>Adv %</th><th>Advance (₹)</th><th>Final (₹)</th><th>Total (₹)</th><th>Adv assign</th><th>Fin assign</th><th>Adv status</th><th>Final status</th><th>Reco</th><th>Remark</th></tr></thead>
         <tbody id="modalBody"></tbody>
       </table></div>
     </div>
@@ -342,418 +408,529 @@ td.neg{color:var(--red);font-weight:400;font-family:'DM Mono',monospace;font-siz
 </div>
 
 <script>
-const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjIwcZ2Q9qsLbxG02dEbgrt8YVQzZGvnlaJAB6Xvep19cf-vz-nQK76s6FErgyH3lY9a4j2lHulq7b/pub?output=csv';
-const CORS_PROXIES = [
-  url => url,
-  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-  url => 'https://corsproxy.io/?' + encodeURIComponent(url),
-];
+const SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQjIwcZ2Q9qsLbxG02dEbgrt8YVQzZGvnlaJAB6Xvep19cf-vz-nQK76s6FErgyH3lY9a4j2lHulq7b/pub?output=csv';
+const PROXIES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u)];
+const C={a:0,advDate:1,finDate:2,po:3,link:4,v:5,poStatus:6,advPct:7,advStatus:8,adv:9,fin:10,tot:11,finStatus:12,advComp:13,finComp:14,driveLink:15,recoLink:16,remark:17};
 
-// Col indices (0-based, col 0 = assignee since header row has blank first cell mapped to index 0)
-const C = { a:0, advDate:1, finDate:2, po:3, link:4, v:5, poStatus:6, advPct:7, advStatus:8,
-            adv:9, fin:10, tot:11, finStatus:12, advComp:13, finComp:14, driveLink:15, recoLink:16, remark:17 };
-
-let POS = [];
-let charts = {};
-let sortState = {};
+let POS=[],charts={},sortState={},activeMonthFilter=null;
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
-const num = s => { if(!s) return 0; const n = parseFloat(String(s).replace(/,/g,'')); return isNaN(n)?0:n; };
-const INR = n => { const v=Math.round(n); if(v<0) return '-₹'+Math.abs(v).toLocaleString('en-IN'); return '₹'+v.toLocaleString('en-IN'); };
-const CR  = n => (Math.abs(n)/10000000).toFixed(2)+'Cr';
-const L   = n => (Math.abs(n)/100000).toFixed(1)+'L';
+const num=s=>{if(!s)return 0;const n=parseFloat(String(s).replace(/,/g,''));return isNaN(n)?0:n;};
+const INR=n=>{const v=Math.round(n);if(v<0)return'-₹'+Math.abs(v).toLocaleString('en-IN');return'₹'+v.toLocaleString('en-IN');};
+const CR=n=>(Math.abs(n)/10000000).toFixed(2)+'Cr';
+const L=n=>(Math.abs(n)/100000).toFixed(1)+'L';
+
+const normStatus=s=>{
+  const l=(s||'').trim().toLowerCase();
+  if(l==='completed') return 'Completed';
+  if(l==='uploaded')  return 'Uploaded';
+  if(l==='pending')   return 'Pending';
+  if(l==='not required'||l==='not_required'||l==='not req') return 'not required';
+  return (s||'').trim()||'Pending';
+};
+
+// Parse DD-MM-YYYY, DD/MM/YYYY, "08 Apr", "08Apr" → "YYYY-MM-DD" or null
+function parseDate(s){
+  if(!s||!s.trim()) return null;
+  s=s.trim();
+  // DD/MM/YYYY or DD-MM-YYYY
+  let m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  // "08 Apr" or "08Apr"
+  const MONTHS={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+  m=s.match(/^(\d{1,2})\s*([A-Za-z]{3})$/);
+  if(m){const mo=MONTHS[m[2].toLowerCase()];if(mo)return`2026-${mo}-${m[1].padStart(2,'0')}`;}
+  return null;
+}
+function dateToMonth(iso){return iso?iso.slice(0,7):null;}
+function fmtDate(iso){if(!iso)return'—';const[y,m,d]=iso.split('-');const mn=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${d} ${mn[+m]} ${y}`;}
+function fmtMonth(ym){if(!ym)return'—';const[y,m]=ym.split('-');const mn=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mn[+m]} ${y}`;}
 
 function statusPill(s){
-  if(!s) return '<span class="pill pill-amber">—</span>';
-  const l=s.trim().toLowerCase();
-  if(l==='completed') return '<span class="pill pill-green">Completed</span>';
-  if(l==='uploaded')  return '<span class="pill pill-blue">Uploaded</span>';
-  if(l==='not required'||l==='not_required') return '<span class="pill pill-gray">Not required</span>';
-  if(l==='pending')   return '<span class="pill pill-amber">Pending</span>';
-  return `<span class="pill pill-gray">${s}</span>`;
+  if(!s||s==='—') return '<span class="pill pill-gray">—</span>';
+  if(s==='Completed')    return '<span class="pill pill-green">Completed</span>';
+  if(s==='Uploaded')     return '<span class="pill pill-blue">Uploaded</span>';
+  if(s==='not required') return '<span class="pill pill-gray">Not req.</span>';
+  if(s==='Pending')      return '<span class="pill pill-amber">Pending</span>';
+  return`<span class="pill pill-gray">${s}</span>`;
 }
 
-// ── CSV LOAD ───────────────────────────────────────────────────────────────
+// ── LOAD ───────────────────────────────────────────────────────────────────
 async function loadData(manual=false){
-  const btn = document.getElementById('syncBtn');
-  const sub = document.getElementById('loaderSub');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin">↻</span> Syncing…';
-  if(!manual){ document.getElementById('globalLoader').classList.remove('hidden'); }
-  sub.textContent = 'Fetching latest data from Google Sheets…';
-
-  try {
-    const csvUrl = SHEET_CSV + '&t=' + Date.now();
-    let text = null;
-    for (const proxy of CORS_PROXIES) {
-      try {
-        const resp = await fetch(proxy(csvUrl));
-        if (resp.ok) { text = await resp.text(); break; }
-      } catch(e) { /* try next proxy */ }
+  const btn=document.getElementById('syncBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin">↻</span> Syncing…';
+  if(!manual) document.getElementById('globalLoader').classList.remove('hidden');
+  try{
+    const url=SHEET_CSV+'&t='+Date.now();
+    let text=null;
+    for(const p of PROXIES){try{const r=await fetch(p(url));if(r.ok){text=await r.text();break;}}catch(e){}}
+    if(!text) throw new Error('All fetch attempts failed');
+    const rows=Papa.parse(text,{skipEmptyLines:true}).data;
+    const poMap=new Map();
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      const po=(r[C.po]||'').trim();
+      if(!po.startsWith('POFZP')&&!po.startsWith('POASTN')) continue;
+      poMap.set(po,r);
     }
-    if (!text) throw new Error('All fetch attempts failed. Check network or CORS.');
-    const parsed = Papa.parse(text, { skipEmptyLines: true });
-    const rows = parsed.data;
-    // rows[0] = header, rows[1..] = data
-    POS = [];
-    for(let i=1; i<rows.length; i++){
-      const r = rows[i];
-      const po = (r[C.po]||'').trim();
-      if(!po.startsWith('POFZP') && !po.startsWith('POASTN')) continue;
+    POS=[];
+    for(const[po,r]of poMap){
+      const advDateIso=parseDate(r[C.advDate]);
+      const finDateIso=parseDate(r[C.finDate]);
+      const advCompIso=parseDate(r[C.advComp]);
+      const finCompIso=parseDate(r[C.finComp]);
       POS.push({
-        a:        (r[C.a]||'').trim(),
-        advDate:  (r[C.advDate]||'').trim(),
-        finDate:  (r[C.finDate]||'').trim(),
-        po,
-        link:     (r[C.link]||'').trim(),
-        v:        (r[C.v]||'').trim(),
-        poStatus: (r[C.poStatus]||'').trim(),
-        advPct:   num(r[C.advPct]),
-        advStatus:(r[C.advStatus]||'').trim(),
-        adv:      num(r[C.adv]),
-        fin:      num(r[C.fin]),
-        tot:      num(r[C.tot]),
-        finStatus:(r[C.finStatus]||'').trim(),
-        advComp:  (r[C.advComp]||'').trim(),
-        finComp:  (r[C.finComp]||'').trim(),
-        driveLink:(r[C.driveLink]||'').trim(),
-        recoLink: (r[C.recoLink]||'').trim(),
-        remark:   (r[C.remark]||'').trim(),
+        a:(r[C.a]||'').trim(), advDateIso, finDateIso, advCompIso, finCompIso,
+        advDate:fmtDate(advDateIso), finDate:fmtDate(finDateIso),
+        advComp:fmtDate(advCompIso), finComp:fmtDate(finCompIso),
+        po, link:(r[C.link]||'').trim(), v:(r[C.v]||'').trim(),
+        poStatus:(r[C.poStatus]||'').trim(),
+        advPct:num(r[C.advPct]),
+        advStatus:normStatus(r[C.advStatus]),
+        adv:num(r[C.adv]), fin:num(r[C.fin]), tot:num(r[C.tot]),
+        finStatus:normStatus(r[C.finStatus]),
+        driveLink:(r[C.driveLink]||'').trim(), recoLink:(r[C.recoLink]||'').trim(),
+        remark:(r[C.remark]||'').trim(),
+        // month key: prefer finDate assign for final grouping, else advDate
+        monthKey: dateToMonth(finDateIso||advDateIso),
       });
     }
-    const now = new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    document.getElementById('syncStatus').textContent = 'Synced '+now;
+    const now=new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('syncStatus').textContent='Synced '+now;
     document.getElementById('errBanner').style.display='none';
     buildAll();
-  } catch(e){
-    const eb = document.getElementById('errBanner');
-    eb.style.display='block';
-    eb.textContent = 'Failed to load sheet data: '+e.message+'. Retrying in 10s…';
+  }catch(e){
+    const eb=document.getElementById('errBanner');
+    eb.style.display='block'; eb.textContent='Failed: '+e.message+'. Retrying in 10s…';
     setTimeout(()=>loadData(),10000);
-  } finally {
-    btn.disabled=false;
-    btn.innerHTML='↻ Sync';
+  }finally{
+    btn.disabled=false; btn.innerHTML='↻ Sync';
     document.getElementById('globalLoader').classList.add('hidden');
   }
 }
 
 // ── BUILD ALL ──────────────────────────────────────────────────────────────
 function buildAll(){
-  buildOverview();
-  buildAdvanceMetrics();
-  buildFinalMetrics();
-  buildCharts();
-  populateAssigneeFilters();
-  renderAdv();
-  renderFin();
+  buildOverviewMetrics();
+  buildAdvMetrics();
+  buildFinMetrics();
+  buildMonthTab();
   renderActions();
-  renderVendors();
+  populateFilters();
+  renderAdv();renderFin();renderVendors();
+  if(document.getElementById('panel-overview').classList.contains('active')) buildCharts();
 }
 
-// ── OVERVIEW ──────────────────────────────────────────────────────────────
-function buildOverview(){
-  const total   = POS.reduce((s,r)=>s+r.tot,0);
-  const totalAdv= POS.reduce((s,r)=>s+r.adv,0);
-  const totalFin= POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
-  const comp    = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
-  const notReq  = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
-  const pending = POS.filter(r=>r.finStatus.toLowerCase()==='pending').length;
-  const holds   = POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
-  const assignees= [...new Set(POS.map(r=>r.a).filter(Boolean))];
-
-  document.getElementById('ovMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">Total POs</div><div class="metric-val">${POS.length}</div><div class="metric-sub">${assignees.length} assignees</div></div>
-    <div class="metric-card accent-blue"><div class="metric-label">Total paid out</div><div class="metric-val">₹${CR(total)}</div><div class="metric-sub">${L(total)}</div></div>
-    <div class="metric-card accent-purple"><div class="metric-label">Advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
-    <div class="metric-card accent-green"><div class="metric-label">Final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
-    <div class="metric-card accent-green"><div class="metric-label">Final completed</div><div class="metric-val">${comp}</div><div class="metric-sub">POs closed</div></div>
-    <div class="metric-card accent-amber"><div class="metric-label">Final pending</div><div class="metric-val">${pending}</div><div class="metric-sub">awaiting payment</div></div>
-    <div class="metric-card accent-red"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">blocked</div></div>
-    <div class="metric-card"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">advance-only</div></div>
+// ── OVERVIEW METRICS ──────────────────────────────────────────────────────
+function buildOverviewMetrics(){
+  const total=POS.reduce((s,r)=>s+r.tot,0);
+  const totalAdv=POS.reduce((s,r)=>s+r.adv,0);
+  const totalFin=POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const comp=POS.filter(r=>r.finStatus==='Completed').length;
+  const notReq=POS.filter(r=>r.finStatus==='not required').length;
+  const pending=POS.filter(r=>r.finStatus==='Pending').length;
+  const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
+  const holds=POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
+  const assignees=[...new Set(POS.map(r=>r.a).filter(Boolean))];
+  const sum=comp+notReq+pending+upl;
+  const ok=sum===POS.length;
+  document.getElementById('ovMetrics').innerHTML=`
+    <div class="metric-card passive"><div class="metric-label">Total POs</div><div class="metric-val">${POS.length}</div><div class="metric-sub">${assignees.length} assignees · <span style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓ match':'⚠ sum='+sum}</span></div></div>
+    <div class="metric-card passive accent-blue"><div class="metric-label">Total paid out</div><div class="metric-val">₹${CR(total)}</div><div class="metric-sub">${L(total)}</div></div>
+    <div class="metric-card passive accent-purple"><div class="metric-label">Advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
+    <div class="metric-card passive accent-green"><div class="metric-label">Final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
+    <div class="metric-card accent-green" onclick="gotoFin('Completed')"><div class="metric-label">Final completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to view →</div></div>
+    <div class="metric-card accent-blue" onclick="gotoFin('Uploaded')"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to view →</div></div>
+    <div class="metric-card accent-amber" onclick="gotoFin('Pending')"><div class="metric-label">Final pending</div><div class="metric-val">${pending}</div><div class="metric-sub">click to view →</div></div>
+    <div class="metric-card accent-red" onclick="switchTab('actions',document.querySelector('.nav-btn:nth-child(5)'))"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">click to view →</div></div>
+    <div class="metric-card" onclick="gotoFin('not required')"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">click to view →</div></div>
   `;
 }
 
-function buildAdvanceMetrics(){
-  const withAdv = POS.filter(r=>r.adv>0||r.advPct>0);
-  const totalAdv= POS.reduce((s,r)=>s+r.adv,0);
-  const advComp = POS.filter(r=>r.advStatus.toLowerCase()==='completed').length;
-  const advUpl  = POS.filter(r=>r.advStatus.toLowerCase()==='uploaded').length;
-  const advPend = POS.filter(r=>r.advStatus.toLowerCase()==='pending').length;
-  document.getElementById('advMetrics').innerHTML = `
-    <div class="metric-card accent-purple"><div class="metric-label">Total advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
-    <div class="metric-card"><div class="metric-label">POs with advance</div><div class="metric-val">${withAdv.length}</div><div class="metric-sub">of ${POS.length} total</div></div>
-    <div class="metric-card accent-green"><div class="metric-label">Completed</div><div class="metric-val">${advComp}</div><div class="metric-sub">advance done</div></div>
-    <div class="metric-card accent-blue"><div class="metric-label">Uploaded</div><div class="metric-val">${advUpl}</div><div class="metric-sub">in process</div></div>
-    <div class="metric-card accent-amber"><div class="metric-label">Pending</div><div class="metric-val">${advPend}</div><div class="metric-sub">not started</div></div>
-  `;
+function gotoFin(status){
+  document.getElementById('finStatus').value=status;
+  switchTab('final',document.querySelectorAll('.nav-btn')[2]);
+  renderFin();
 }
 
-function buildFinalMetrics(){
-  const totalFin= POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
-  const comp    = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
-  const pend    = POS.filter(r=>r.finStatus.toLowerCase()==='pending').length;
-  const notReq  = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
-  document.getElementById('finMetrics').innerHTML = `
-    <div class="metric-card accent-green"><div class="metric-label">Total final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
-    <div class="metric-card accent-green"><div class="metric-label">Completed</div><div class="metric-val">${comp}</div><div class="metric-sub">fully closed</div></div>
-    <div class="metric-card accent-amber"><div class="metric-label">Pending</div><div class="metric-val">${pend}</div><div class="metric-sub">awaiting payment</div></div>
-    <div class="metric-card accent-blue"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">advance-only POs</div></div>
+// ── ADV METRICS ───────────────────────────────────────────────────────────
+function buildAdvMetrics(){
+  const totalAdv=POS.reduce((s,r)=>s+r.adv,0);
+  const withAdv=POS.filter(r=>r.adv>0||r.advPct>0).length;
+  const comp=POS.filter(r=>r.advStatus==='Completed').length;
+  const upl=POS.filter(r=>r.advStatus==='Uploaded').length;
+  const pend=POS.filter(r=>r.advStatus==='Pending').length;
+  const notR=POS.filter(r=>r.advStatus==='not required').length;
+  const sum=comp+upl+pend+notR;
+  document.getElementById('advMetrics').innerHTML=`
+    <div class="metric-card passive accent-purple"><div class="metric-label">Total advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
+    <div class="metric-card passive"><div class="metric-label">POs with advance</div><div class="metric-val">${withAdv}</div><div class="metric-sub">of ${POS.length} total</div></div>
+    <div class="metric-card accent-green" onclick="setAdvFilter('Completed')"><div class="metric-label">Completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card accent-blue" onclick="setAdvFilter('Uploaded')"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card accent-amber" onclick="setAdvFilter('Pending')"><div class="metric-label">Pending</div><div class="metric-val">${pend}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card" onclick="setAdvFilter('not required')"><div class="metric-label">Not required</div><div class="metric-val">${notR}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card passive"><div class="metric-label">Sum check</div><div class="metric-val" style="font-size:14px;color:${sum===POS.length?'var(--green)':'var(--red)'}">${sum===POS.length?'✓ '+sum:'⚠ '+sum+'/'+POS.length}</div><div class="metric-sub">${sum===POS.length?'all accounted':'mismatch!'}</div></div>
+  `;
+}
+function setAdvFilter(s){document.getElementById('advStatus').value=s;renderAdv();}
+
+// ── FIN METRICS ───────────────────────────────────────────────────────────
+function buildFinMetrics(){
+  const totalFin=POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const comp=POS.filter(r=>r.finStatus==='Completed').length;
+  const pend=POS.filter(r=>r.finStatus==='Pending').length;
+  const notR=POS.filter(r=>r.finStatus==='not required').length;
+  const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
+  const sum=comp+pend+notR+upl;
+  document.getElementById('finMetrics').innerHTML=`
+    <div class="metric-card passive accent-green"><div class="metric-label">Total final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
+    <div class="metric-card accent-green" onclick="document.getElementById('finStatus').value='Completed';renderFin()"><div class="metric-label">Completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card accent-blue" onclick="document.getElementById('finStatus').value='Uploaded';renderFin()"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card accent-amber" onclick="document.getElementById('finStatus').value='Pending';renderFin()"><div class="metric-label">Pending</div><div class="metric-val">${pend}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card" onclick="document.getElementById('finStatus').value='not required';renderFin()"><div class="metric-label">Not required</div><div class="metric-val">${notR}</div><div class="metric-sub">click to filter →</div></div>
+    <div class="metric-card passive"><div class="metric-label">Sum check</div><div class="metric-val" style="font-size:14px;color:${sum===POS.length?'var(--green)':'var(--red)'}">${sum===POS.length?'✓ '+sum:'⚠ '+sum+'/'+POS.length}</div><div class="metric-sub">${sum===POS.length?'all accounted':'mismatch!'}</div></div>
   `;
 }
 
 // ── CHARTS ────────────────────────────────────────────────────────────────
 function buildCharts(){
   // Donut
-  const comp  = POS.filter(r=>r.finStatus.toLowerCase()==='completed').length;
-  const pend  = POS.filter(r=>r.finStatus.toLowerCase()==='pending').length;
-  const notR  = POS.filter(r=>r.finStatus.toLowerCase()==='not required').length;
-  const other = POS.length - comp - pend - notR;
-  const dData = [comp,pend,notR,other];
-  const dLabels = ['Completed','Pending','Not required','Other'];
-  const dColors = ['#16a34a','#d97706','#2563eb','#9ca3af'];
-  document.getElementById('donutLegend').innerHTML = dLabels.map((l,i)=>
-    `<span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:${dColors[i]};display:inline-block"></span>${l} (${dData[i]})</span>`).join('');
+  const comp=POS.filter(r=>r.finStatus==='Completed').length;
+  const pend=POS.filter(r=>r.finStatus==='Pending').length;
+  const notR=POS.filter(r=>r.finStatus==='not required').length;
+  const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
+  const dData=[comp,upl,pend,notR];
+  const dLabels=['Completed','Uploaded','Pending','Not required'];
+  const dColors=['#16a34a','#2563eb','#d97706','#9ca3af'];
+  document.getElementById('donutLegend').innerHTML=dLabels.map((l,i)=>
+    `<span style="display:flex;align-items:center;gap:4px;cursor:pointer" onclick="gotoFin('${dLabels[i]==='Not required'?'not required':dLabels[i]}')"><span style="width:9px;height:9px;border-radius:2px;background:${dColors[i]};display:inline-block"></span>${l} (${dData[i]})</span>`).join('');
   if(charts.donut) charts.donut.destroy();
-  charts.donut = new Chart(document.getElementById('donutChart'),{
+  charts.donut=new Chart(document.getElementById('donutChart'),{
     type:'doughnut',
     data:{labels:dLabels,datasets:[{data:dData,backgroundColor:dColors,borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}`}}},
+      onClick(e,els){if(els.length){const l=dLabels[els[0].index];gotoFin(l==='Not required'?'not required':l);}}}
   });
 
-  // Assignee totals
-  const assignees = [...new Set(POS.map(r=>r.a).filter(Boolean))].sort();
-  const aColors = ['#2563eb','#16a34a','#d97706','#7c3aed','#0d9488','#dc2626'];
-  const aVals = assignees.map(a=>parseFloat((POS.filter(r=>r.a===a).reduce((s,r)=>s+r.tot,0)/10000000).toFixed(2)));
+  // Assignee bar
+  const assignees=[...new Set(POS.map(r=>r.a).filter(Boolean))].sort();
+  const aColors=['#2563eb','#16a34a','#d97706','#7c3aed','#0d9488','#dc2626','#ea580c','#0891b2'];
+  const aVals=assignees.map(a=>parseFloat((POS.filter(r=>r.a===a).reduce((s,r)=>s+r.tot,0)/10000000).toFixed(2)));
   if(charts.aBar) charts.aBar.destroy();
-  charts.aBar = new Chart(document.getElementById('assigneeChart'),{
+  charts.aBar=new Chart(document.getElementById('assigneeChart'),{
     type:'bar',
     data:{labels:assignees,datasets:[{data:aVals,backgroundColor:assignees.map((_,i)=>aColors[i%aColors.length]),borderWidth:0,borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'Cr'}}},
-      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'Cr'},grid:{color:'rgba(0,0,0,0.05)'}}}}
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ₹${c.raw}Cr`}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'Cr'},grid:{color:'rgba(0,0,0,0.05)'}}},
+      onClick(e,els){if(els.length){const a=assignees[els[0].index];document.getElementById('finAssignee').value=a;switchTab('final',document.querySelectorAll('.nav-btn')[2]);renderFin();}}}
   });
 
-  // Top vendors
-  const vMap = {};
-  POS.forEach(r=>{ vMap[r.v]=(vMap[r.v]||0)+r.tot; });
-  const top8 = Object.entries(vMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  // Vendor chart (top 8)
+  const vMap={};POS.forEach(r=>{vMap[r.v]=(vMap[r.v]||0)+r.tot;});
+  const top8=Object.entries(vMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
   if(charts.vBar) charts.vBar.destroy();
-  charts.vBar = new Chart(document.getElementById('vendorChart'),{
+  charts.vBar=new Chart(document.getElementById('vendorChart'),{
     type:'bar',
-    data:{labels:top8.map(v=>v[0].length>18?v[0].slice(0,18)+'…':v[0]),
+    data:{labels:top8.map(v=>v[0].length>16?v[0].slice(0,16)+'…':v[0]),
           datasets:[{data:top8.map(v=>parseFloat((v[1]/100000).toFixed(1))),backgroundColor:'#2563eb',borderWidth:0,borderRadius:3}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'L'}}},
-      scales:{x:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}}
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ₹${c.raw}L`}}},
+      scales:{x:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11}},grid:{display:false}}},
+      onClick(e,els){if(els.length){const v=top8[els[0].index][0];openVendorModal(v);}}}
   });
 
-  // Split chart
-  const advVals = assignees.map(a=>parseFloat((POS.filter(r=>r.a===a).reduce((s,r)=>s+r.adv,0)/100000).toFixed(1)));
-  const finVals = assignees.map(a=>parseFloat((POS.filter(r=>r.a===a).reduce((s,r)=>s+(r.fin>0?r.fin:0),0)/100000).toFixed(1)));
-  if(charts.sBar) charts.sBar.destroy();
-  charts.sBar = new Chart(document.getElementById('splitChart'),{
+  // Monthly chart (PO count bars + payment line)
+  const monthData=getMonthData();
+  const mLabels=monthData.map(m=>fmtMonth(m.ym));
+  if(charts.mBar) charts.mBar.destroy();
+  charts.mBar=new Chart(document.getElementById('monthChart'),{
     type:'bar',
-    data:{labels:assignees,datasets:[
-      {label:'Advance',data:advVals,backgroundColor:'#7c3aed',borderWidth:0,borderRadius:3},
-      {label:'Final',data:finVals,backgroundColor:'#16a34a',borderWidth:0,borderRadius:3}
+    data:{labels:mLabels,datasets:[
+      {label:'PO count',data:monthData.map(m=>m.count),backgroundColor:'#7c3aed',borderWidth:0,borderRadius:3,yAxisID:'y'},
+      {label:'Payment (₹L)',data:monthData.map(m=>parseFloat((m.tot/100000).toFixed(1))),type:'line',borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.1)',borderWidth:2,pointRadius:4,fill:true,yAxisID:'y2'},
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{labels:{font:{size:11},boxWidth:10}}},
-      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}}}}
+      scales:{
+        x:{ticks:{font:{size:11}},grid:{display:false}},
+        y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},title:{display:true,text:'POs',font:{size:10}}},
+        y2:{position:'right',ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{display:false},title:{display:true,text:'₹L',font:{size:10}}}
+      },
+      onClick(e,els){if(els.length){const ym=monthData[els[0].index].ym;switchTab('monthly',document.querySelectorAll('.nav-btn')[3]);setMonthFilter(ym);}}}
   });
 }
 
-// ── ASSIGNEE FILTERS ──────────────────────────────────────────────────────
-function populateAssigneeFilters(){
-  const assignees = [...new Set(POS.map(r=>r.a).filter(Boolean))].sort();
+// ── MONTHLY TAB ───────────────────────────────────────────────────────────
+function getMonthData(){
+  const map={};
+  POS.forEach(r=>{
+    const m=r.monthKey||'Unknown';
+    if(!map[m]) map[m]={ym:m,count:0,tot:0,adv:0,fin:0};
+    map[m].count++;map[m].tot+=r.tot;map[m].adv+=r.adv;map[m].fin+=r.fin>0?r.fin:0;
+  });
+  return Object.values(map).filter(m=>m.ym&&m.ym!=='Unknown').sort((a,b)=>a.ym.localeCompare(b.ym));
+}
+
+function buildMonthTab(){
+  const monthData=getMonthData();
+  // Top metric cards
+  const best=monthData.reduce((a,b)=>b.tot>a.tot?b:a,{ym:'',tot:0});
+  document.getElementById('monthMetrics').innerHTML=`
+    <div class="metric-card passive"><div class="metric-label">Months tracked</div><div class="metric-val">${monthData.length}</div><div class="metric-sub">with payment data</div></div>
+    <div class="metric-card passive accent-purple"><div class="metric-label">Best month (value)</div><div class="metric-val">${fmtMonth(best.ym)}</div><div class="metric-sub">${INR(best.tot)}</div></div>
+    <div class="metric-card passive accent-blue"><div class="metric-label">Best month (POs)</div><div class="metric-val">${fmtMonth(monthData.reduce((a,b)=>b.count>a.count?b:a,{ym:'',count:0}).ym)}</div><div class="metric-sub">${monthData.reduce((a,b)=>Math.max(a,b.count),0)} POs</div></div>
+    <div class="metric-card passive"><div class="metric-label">No date assigned</div><div class="metric-val">${POS.filter(r=>!r.monthKey).length}</div><div class="metric-sub">POs without dates</div></div>
+  `;
+  // Month chips
+  document.getElementById('monthChips').innerHTML=
+    `<span class="month-chip ${!activeMonthFilter?'active':''}" onclick="setMonthFilter(null)">All</span>`+
+    monthData.map(m=>`<span class="month-chip ${activeMonthFilter===m.ym?'active':''}" onclick="setMonthFilter('${m.ym}')">${fmtMonth(m.ym)} <span style="opacity:.7">(${m.count})</span></span>`).join('');
+  // Monthly mini-charts
+  const mLabels=monthData.map(m=>fmtMonth(m.ym));
+  if(charts.mPo) charts.mPo.destroy();
+  charts.mPo=new Chart(document.getElementById('monthPoChart'),{
+    type:'bar',
+    data:{labels:mLabels,datasets:[{data:monthData.map(m=>m.count),backgroundColor:monthData.map(m=>m.ym===activeMonthFilter?'#7c3aed':'#c4b5fd'),borderWidth:0,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw} POs`}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}},
+      onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}}
+  });
+  if(charts.mVal) charts.mVal.destroy();
+  charts.mVal=new Chart(document.getElementById('monthValChart'),{
+    type:'bar',
+    data:{labels:mLabels,datasets:[
+      {label:'Advance',data:monthData.map(m=>parseFloat((m.adv/100000).toFixed(1))),backgroundColor:'#a78bfa',borderWidth:0,borderRadius:2},
+      {label:'Final',data:monthData.map(m=>parseFloat((m.fin/100000).toFixed(1))),backgroundColor:'#86efac',borderWidth:0,borderRadius:2},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:c=>` ₹${c.raw}L`}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}}},
+      onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}}
+  });
+  renderMonthTable();
+}
+
+function setMonthFilter(ym){
+  activeMonthFilter=ym;
+  buildMonthTab();
+}
+
+function renderMonthTable(){
+  const data=activeMonthFilter?POS.filter(r=>r.monthKey===activeMonthFilter):POS;
+  document.getElementById('monthTableTitle').textContent=activeMonthFilter?`POs in ${fmtMonth(activeMonthFilter)}`:'All POs';
+  document.getElementById('monthTablePill').textContent=data.length+' POs';
+  document.getElementById('monthPill').textContent=(activeMonthFilter?fmtMonth(activeMonthFilter)+' · ':'')+data.length+' POs';
+  document.getElementById('monthBody').innerHTML=data.map(r=>`<tr>
+    <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
+    <td>${r.v}</td><td>${r.a}</td>
+    <td class="amt" style="color:var(--purple)">${INR(r.adv)}</td>
+    <td class="${r.fin<0?'neg':'amt'}" style="color:var(--green)">${INR(r.fin)}</td>
+    <td class="amt">${INR(r.tot)}</td>
+    <td class="muted">${r.advDate}</td>
+    <td class="muted">${r.finDate}</td>
+    <td>${statusPill(r.advStatus)}</td>
+    <td>${statusPill(r.finStatus)}</td>
+    <td class="muted" style="max-width:160px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
+  </tr>`).join('')||'<tr><td colspan="11" style="text-align:center;padding:2rem;color:var(--text3)">No POs for this month</td></tr>';
+}
+
+// ── POPULATE FILTERS ──────────────────────────────────────────────────────
+function populateFilters(){
+  const assignees=[...new Set(POS.map(r=>r.a).filter(Boolean))].sort();
+  const vendors=[...new Set(POS.map(r=>r.v).filter(Boolean))].sort();
   ['advAssignee','finAssignee'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    const cur = el.value;
-    el.innerHTML = '<option value="">All assignees</option>' +
-      assignees.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
+    const el=document.getElementById(id);
+    const cur=el.value;
+    el.innerHTML='<option value="">All</option>'+assignees.map(a=>`<option${a===cur?' selected':''}>${a}</option>`).join('');
+  });
+  ['advVendor','finVendor'].forEach(id=>{
+    const el=document.getElementById(id);
+    const cur=el.value;
+    el.innerHTML='<option value="">All</option>'+vendors.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('');
   });
 }
 
 // ── SORT ──────────────────────────────────────────────────────────────────
-function sortTable(table, key){
-  if(!sortState[table]) sortState[table]={key:'',dir:1};
-  const st = sortState[table];
-  st.dir = st.key===key ? -st.dir : 1;
-  st.key = key;
-  if(table==='adv') renderAdv();
-  else if(table==='fin') renderFin();
-  else if(table==='vendor') renderVendors();
+function sortTable(tbl,key){
+  if(!sortState[tbl]) sortState[tbl]={key:'',dir:1};
+  const st=sortState[tbl];
+  st.dir=st.key===key?-st.dir:1; st.key=key;
+  if(tbl==='adv') renderAdv();
+  else if(tbl==='fin') renderFin();
+  else if(tbl==='vendor') renderVendors();
+}
+function applySort(data,tbl,filterFn){
+  let out=data.filter(filterFn);
+  const st=sortState[tbl];
+  if(st&&st.key) out.sort((a,b)=>{const av=a[st.key],bv=b[st.key];return(typeof av==='number'?(av-bv):String(av||'').localeCompare(String(bv||'')))*st.dir;});
+  return out;
 }
 
-function applySortAndFilter(data, tableId, filterFn){
-  let out = data.filter(filterFn);
-  const st = sortState[tableId];
-  if(st && st.key){
-    out.sort((a,b)=>{
-      const av=a[st.key], bv=b[st.key];
-      if(typeof av==='number') return (av-bv)*st.dir;
-      return String(av||'').localeCompare(String(bv||''))*st.dir;
-    });
-  }
-  return out;
+function inDateRange(iso,from,to){
+  if(!iso) return !from&&!to;
+  if(from&&iso<from) return false;
+  if(to&&iso>to) return false;
+  return true;
 }
 
 // ── ADVANCE TABLE ─────────────────────────────────────────────────────────
 function renderAdv(){
-  const q  = document.getElementById('advQ').value.toLowerCase();
-  const a  = document.getElementById('advAssignee').value;
-  const st = document.getElementById('advStatus').value;
-  const data = applySortAndFilter(POS,'adv', r=>{
-    if(q && !r.po.toLowerCase().includes(q) && !r.v.toLowerCase().includes(q)) return false;
-    if(a && r.a!==a) return false;
-    if(st && r.advStatus.toLowerCase()!==st.toLowerCase()) return false;
+  const q=(document.getElementById('advQ').value||'').toLowerCase();
+  const a=document.getElementById('advAssignee').value;
+  const st=document.getElementById('advStatus').value;
+  const vn=document.getElementById('advVendor').value;
+  const fr=document.getElementById('advFrom').value;
+  const to=document.getElementById('advTo').value;
+  const data=applySort(POS,'adv',r=>{
+    if(q&&!r.po.toLowerCase().includes(q)&&!r.v.toLowerCase().includes(q)) return false;
+    if(a&&r.a!==a) return false;
+    if(st&&r.advStatus!==st) return false;
+    if(vn&&r.v!==vn) return false;
+    if(!inDateRange(r.advDateIso,fr,to)) return false;
     return true;
   });
-  document.getElementById('advPill').textContent = POS.filter(r=>!a||r.a===a).length+' POs';
-  document.getElementById('advCount').textContent = data.length+' result'+(data.length!==1?'s':'');
-  document.getElementById('advBody').innerHTML = data.map(r=>`<tr>
+  document.getElementById('advPill').textContent=POS.length+' POs';
+  document.getElementById('advCount').textContent=data.length+' result'+(data.length!==1?'s':'');
+  document.getElementById('advBody').innerHTML=data.map(r=>`<tr>
     <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
     <td>${r.v}</td><td>${r.a}</td>
     <td class="mono">${r.advPct}%</td>
-    <td class="${r.adv<0?'neg':'amt'}">${INR(r.adv)}</td>
-    <td class="muted">${r.advDate||'—'}</td>
-    <td class="muted">${r.advComp||'—'}</td>
+    <td class="${r.adv<0?'neg':'amt'}" style="color:var(--purple)">${INR(r.adv)}</td>
+    <td class="muted">${r.advDate}</td>
+    <td class="muted">${r.advComp}</td>
     <td>${statusPill(r.advStatus)}</td>
     <td class="muted" style="max-width:180px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
-  </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No results</td></tr>';
+  </tr>`).join()||'<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No results</td></tr>';
 }
 
 // ── FINAL TABLE ───────────────────────────────────────────────────────────
 function renderFin(){
-  const q  = document.getElementById('finQ').value.toLowerCase();
-  const a  = document.getElementById('finAssignee').value;
-  const st = document.getElementById('finStatus').value;
-  const data = applySortAndFilter(POS,'fin', r=>{
-    if(q && !r.po.toLowerCase().includes(q) && !r.v.toLowerCase().includes(q)) return false;
-    if(a && r.a!==a) return false;
-    if(st && r.finStatus.toLowerCase()!==st.toLowerCase()) return false;
+  const q=(document.getElementById('finQ').value||'').toLowerCase();
+  const a=document.getElementById('finAssignee').value;
+  const st=document.getElementById('finStatus').value;
+  const vn=document.getElementById('finVendor').value;
+  const fr=document.getElementById('finFrom').value;
+  const to=document.getElementById('finTo').value;
+  const data=applySort(POS,'fin',r=>{
+    if(q&&!r.po.toLowerCase().includes(q)&&!r.v.toLowerCase().includes(q)) return false;
+    if(a&&r.a!==a) return false;
+    if(st&&r.finStatus!==st) return false;
+    if(vn&&r.v!==vn) return false;
+    if(!inDateRange(r.finDateIso,fr,to)) return false;
     return true;
   });
-  document.getElementById('finPill').textContent = POS.filter(r=>!a||r.a===a).length+' POs';
-  document.getElementById('finCount').textContent = data.length+' result'+(data.length!==1?'s':'');
-  document.getElementById('finBody').innerHTML = data.map(r=>`<tr>
+  document.getElementById('finPill').textContent=POS.length+' POs';
+  document.getElementById('finCount').textContent=data.length+' result'+(data.length!==1?'s':'');
+  document.getElementById('finBody').innerHTML=data.map(r=>`<tr>
     <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
     <td>${r.v}</td><td>${r.a}</td>
-    <td class="${r.fin<0?'neg':'amt'}">${INR(r.fin)}</td>
+    <td class="${r.fin<0?'neg':'amt'}" style="color:var(--green)">${INR(r.fin)}</td>
     <td class="amt">${INR(r.tot)}</td>
-    <td class="muted">${r.finDate||'—'}</td>
-    <td class="muted">${r.finComp||'—'}</td>
+    <td class="muted">${r.finDate}</td>
+    <td class="muted">${r.finComp}</td>
     <td>${statusPill(r.finStatus)}</td>
     <td class="muted" style="max-width:180px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
-  </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No results</td></tr>';
+  </tr>`).join()||'<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">No results</td></tr>';
 }
 
-// ── ACTION ITEMS ──────────────────────────────────────────────────────────
+// ── ACTIONS ───────────────────────────────────────────────────────────────
 function renderActions(){
-  const holds = POS.filter(r=>r.remark.toLowerCase().includes('hold')||r.finStatus.toLowerCase()==='not required');
-  const finPending = POS.filter(r=>r.finStatus.toLowerCase()==='pending'&&!r.remark.toLowerCase().includes('hold'));
-  const advPending = POS.filter(r=>['pending','uploaded'].includes(r.advStatus.toLowerCase()));
-
-  document.getElementById('holdPill').textContent = holds.length+' POs';
-  document.getElementById('finPendingPill').textContent = finPending.length+' POs';
-  document.getElementById('advPendingPill').textContent = advPending.length+' POs';
-
-  document.getElementById('holdBody').innerHTML = holds.map(r=>`<tr>
-    <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
-    <td>${r.v}</td><td>${r.a}</td>
-    <td class="amt">${INR(r.adv)}</td><td class="amt">${INR(r.fin)}</td><td class="amt">${INR(r.tot)}</td>
-    <td>${statusPill(r.finStatus)}</td>
-    <td class="muted" style="max-width:200px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
-  </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
-
-  document.getElementById('finPendingBody').innerHTML = finPending.map(r=>`<tr>
-    <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
-    <td>${r.v}</td><td>${r.a}</td>
-    <td class="amt">${INR(r.fin)}</td>
-    <td class="muted">${r.finDate||'—'}</td>
-    <td class="muted" style="max-width:200px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
-  </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
-
-  document.getElementById('advPendingBody').innerHTML = advPending.map(r=>`<tr>
-    <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
-    <td>${r.v}</td><td>${r.a}</td>
-    <td class="amt">${INR(r.adv)}</td>
-    <td class="mono">${r.advPct}%</td>
-    <td class="muted">${r.advDate||'—'}</td>
-    <td>${statusPill(r.advStatus)}</td>
-    <td class="muted" style="max-width:180px;white-space:normal;font-size:12px">${r.remark||'—'}</td>
-  </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
+  const holds=POS.filter(r=>r.remark.toLowerCase().includes('hold')||r.finStatus==='not required');
+  const finPend=POS.filter(r=>(r.finStatus==='Pending'||r.finStatus==='Uploaded')&&!r.remark.toLowerCase().includes('hold'));
+  const advPend=POS.filter(r=>r.advStatus==='Pending'||r.advStatus==='Uploaded');
+  document.getElementById('holdPill').textContent=holds.length+' POs';
+  document.getElementById('finPendingPill').textContent=finPend.length+' POs';
+  document.getElementById('advPendingPill').textContent=advPend.length+' POs';
+  const row=(r,cols)=>`<tr>${cols.map(c=>`<td${c.cls?' class="'+c.cls+'"':''}${c.style?' style="'+c.style+'"':''}>${c.val}</td>`).join('')}</tr>`;
+  const poCell=r=>`<a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a>`;
+  document.getElementById('holdBody').innerHTML=holds.map(r=>row(r,[
+    {val:poCell(r)},{val:r.v},{val:r.a},
+    {val:INR(r.adv),cls:'amt'},{val:INR(r.fin),cls:'amt'},{val:INR(r.tot),cls:'amt'},
+    {val:statusPill(r.finStatus)},{val:r.remark||'—',cls:'muted',style:'max-width:220px;white-space:normal;font-size:12px'}
+  ])).join()||'<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
+  document.getElementById('finPendingBody').innerHTML=finPend.map(r=>row(r,[
+    {val:poCell(r)},{val:r.v},{val:r.a},
+    {val:INR(r.fin),cls:'amt'},{val:r.finDate,cls:'muted'},{val:statusPill(r.finStatus)},
+    {val:r.remark||'—',cls:'muted',style:'max-width:220px;white-space:normal;font-size:12px'}
+  ])).join()||'<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
+  document.getElementById('advPendingBody').innerHTML=advPend.map(r=>row(r,[
+    {val:poCell(r)},{val:r.v},{val:r.a},
+    {val:INR(r.adv),cls:'amt'},{val:r.advPct+'%',cls:'mono'},{val:r.advDate,cls:'muted'},
+    {val:statusPill(r.advStatus)},{val:r.remark||'—',cls:'muted',style:'max-width:180px;white-space:normal;font-size:12px'}
+  ])).join()||'<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--text3)">None</td></tr>';
 }
 
-// ── VENDOR TABLE ──────────────────────────────────────────────────────────
-const vendorMap = () => {
-  const m = {};
+// ── VENDORS ───────────────────────────────────────────────────────────────
+function getVendorData(){
+  const m={};
   POS.forEach(r=>{
-    const v=r.v||'Unknown';
-    if(!m[v]) m[v]={v,pos:0,tot:0,adv:0,fin:0};
-    m[v].pos++; m[v].tot+=r.tot; m[v].adv+=r.adv; m[v].fin+=r.fin>0?r.fin:0;
+    if(!m[r.v]) m[r.v]={v:r.v,pos:0,tot:0,adv:0,fin:0};
+    m[r.v].pos++;m[r.v].tot+=r.tot;m[r.v].adv+=r.adv;m[r.v].fin+=r.fin>0?r.fin:0;
   });
   return Object.values(m).sort((a,b)=>b.tot-a.tot);
-};
-
+}
 function renderVendors(){
-  const q = document.getElementById('vendorQ').value.toLowerCase();
-  let data = applySortAndFilter(vendorMap(),'vendor', d=>!q||d.v.toLowerCase().includes(q));
-  document.getElementById('vendorPill').textContent = vendorMap().length+' vendors';
-  document.getElementById('vendorCount').textContent = data.length+' result'+(data.length!==1?'s':'');
-  document.getElementById('vendorBody').innerHTML = data.map(d=>{
-    const ap = d.tot>0?Math.round(d.adv/d.tot*100):0;
-    return `<tr style="cursor:pointer" onclick="openVendorModal('${d.v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+  const q=(document.getElementById('vendorQ').value||'').toLowerCase();
+  const data=applySort(getVendorData(),'vendor',d=>!q||d.v.toLowerCase().includes(q));
+  document.getElementById('vendorPill').textContent=getVendorData().length+' vendors';
+  document.getElementById('vendorCount').textContent=data.length+' result'+(data.length!==1?'s':'');
+  document.getElementById('vendorBody').innerHTML=data.map(d=>{
+    const ap=d.tot>0?Math.round(d.adv/d.tot*100):0;
+    const vEsc=d.v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return`<tr style="cursor:pointer" onclick="openVendorModal('${vEsc}')">
       <td style="font-weight:500">${d.v}</td>
       <td style="text-align:center">${d.pos}</td>
       <td class="amt">${INR(d.tot)}</td>
-      <td style="color:var(--purple);font-family:'DM Mono',monospace;font-size:12px">${INR(d.adv)}</td>
-      <td style="color:var(--green);font-family:'DM Mono',monospace;font-size:12px">${INR(d.fin)}</td>
-      <td style="min-width:100px">
-        <div class="pay-split"><div class="adv-bar" style="width:${ap}%"></div><div class="fin-bar" style="width:${100-ap}%"></div></div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px"><span style="color:var(--purple)">${ap}% adv</span> · <span style="color:var(--green)">${100-ap}% fin</span></div>
-      </td>
-      <td><button class="sync-btn" style="font-size:11px;padding:4px 10px;background:var(--bg3);color:var(--text2);box-shadow:none;border:1px solid var(--border2)" onclick="event.stopPropagation();openVendorModal('${d.v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">View POs →</button></td>
+      <td class="amt" style="color:var(--purple)">${INR(d.adv)}</td>
+      <td class="amt" style="color:var(--green)">${INR(d.fin)}</td>
+      <td style="min-width:100px"><div class="pay-split"><div class="adv-bar" style="width:${ap}%"></div><div class="fin-bar" style="width:${100-ap}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px"><span style="color:var(--purple)">${ap}% adv</span> · <span style="color:var(--green)">${100-ap}% fin</span></div></td>
+      <td><button style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer" onclick="event.stopPropagation();openVendorModal('${vEsc}')">View →</button></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">No vendors found</td></tr>';
+  }).join()||'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">No vendors</td></tr>';
 }
 
 // ── VENDOR MODAL ──────────────────────────────────────────────────────────
 function openVendorModal(name){
-  const pos = POS.filter(r=>r.v===name);
-  const tot = pos.reduce((s,r)=>s+r.tot,0);
-  const adv = pos.reduce((s,r)=>s+r.adv,0);
-  const fin = pos.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
-  const comp= pos.filter(r=>r.finStatus.toLowerCase()==='completed').length;
-
-  document.getElementById('modalName').textContent = name;
-  document.getElementById('modalSub').textContent  = pos.length+' POs · '+INR(tot)+' total paid';
-  document.getElementById('modalStats').innerHTML  = `
+  const pos=POS.filter(r=>r.v===name);
+  const tot=pos.reduce((s,r)=>s+r.tot,0);
+  const adv=pos.reduce((s,r)=>s+r.adv,0);
+  const fin=pos.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  document.getElementById('modalName').textContent=name;
+  document.getElementById('modalSub').textContent=pos.length+' POs · '+INR(tot)+' total paid';
+  document.getElementById('modalStats').innerHTML=`
     <div class="m-stat"><div class="m-stat-label">POs</div><div class="m-stat-val">${pos.length}</div></div>
-    <div class="m-stat"><div class="m-stat-label">Total paid</div><div class="m-stat-val">${INR(tot)}</div></div>
+    <div class="m-stat"><div class="m-stat-label">Total</div><div class="m-stat-val">${INR(tot)}</div></div>
     <div class="m-stat"><div class="m-stat-label" style="color:var(--purple)">Advance</div><div class="m-stat-val" style="color:var(--purple)">${INR(adv)}</div></div>
     <div class="m-stat"><div class="m-stat-label" style="color:var(--green)">Final</div><div class="m-stat-val" style="color:var(--green)">${INR(fin)}</div></div>
   `;
-  document.getElementById('modalBody').innerHTML = pos.map(r=>`<tr>
+  document.getElementById('modalBody').innerHTML=pos.map(r=>`<tr>
     <td><a class="po-link" href="${r.link||'https://astrotalk.unicommerce.com/purchaseOrder/poItems?orderCode='+r.po}" target="_blank">${r.po} ↗</a></td>
-    <td>${r.a}</td>
-    <td class="mono">${r.advPct}%</td>
-    <td style="color:var(--purple);font-family:'DM Mono',monospace;font-size:12px">${INR(r.adv)}</td>
-    <td style="color:var(--green);font-family:'DM Mono',monospace;font-size:12px">${INR(r.fin)}</td>
+    <td>${r.a}</td><td class="mono">${r.advPct}%</td>
+    <td class="amt" style="color:var(--purple)">${INR(r.adv)}</td>
+    <td class="${r.fin<0?'neg':'amt'}" style="color:var(--green)">${INR(r.fin)}</td>
     <td class="amt">${INR(r.tot)}</td>
+    <td class="muted">${r.advDate}</td>
+    <td class="muted">${r.finDate}</td>
     <td>${statusPill(r.advStatus)}</td>
     <td>${statusPill(r.finStatus)}</td>
-    <td>${r.recoLink?`<a href="${r.recoLink}" target="_blank" style="color:var(--blue);font-size:11px">View ↗</a>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
-    <td class="muted" style="font-size:12px;max-width:160px;white-space:normal">${r.remark||'—'}</td>
+    <td>${r.recoLink?`<a href="${r.recoLink}" target="_blank" style="color:var(--blue);font-size:11px">View ↗</a>`:'—'}</td>
+    <td class="muted" style="font-size:12px;max-width:140px;white-space:normal">${r.remark||'—'}</td>
   </tr>`).join('');
   document.getElementById('vendorModal').classList.remove('hidden');
   document.body.style.overflow='hidden';
 }
+function closeModal(){document.getElementById('vendorModal').classList.add('hidden');document.body.style.overflow='';}
 
-function closeModal(){
-  document.getElementById('vendorModal').classList.add('hidden');
-  document.body.style.overflow='';
+// ── CLEAR FILTERS ─────────────────────────────────────────────────────────
+function clearFilters(pfx){
+  ['Q','Assignee','Status','Vendor','From','To'].forEach(s=>{
+    const el=document.getElementById(pfx+s);
+    if(el) el.value='';
+  });
+  if(pfx==='adv') renderAdv();
+  else renderFin();
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────
@@ -761,11 +938,11 @@ function switchTab(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
   if(id==='overview'&&POS.length) buildCharts();
+  if(id==='monthly'&&POS.length) buildMonthTab();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
 loadData();
 </script>
 </body>
