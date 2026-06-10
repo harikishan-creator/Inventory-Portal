@@ -10,7 +10,78 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#f0f2f5;font-family:'DM Sans',sans-serif}
 
-/* HEADER */
+/* ── AUTH SCREEN ─────────────────────────────────────────────── */
+#authScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+#authScreen.hidden{display:none}
+.auth-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:2.5rem 2rem;
+  width:min(420px,90vw);
+  backdrop-filter:blur(20px);
+  text-align:center;
+}
+.auth-logo{
+  width:56px;height:56px;border-radius:16px;margin:0 auto 1.25rem;
+  background:linear-gradient(135deg,#0d9488,#2563eb);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 8px 24px rgba(37,99,235,0.4);
+}
+.auth-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+.auth-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:2rem;line-height:1.6}
+.google-btn{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;padding:13px 20px;border-radius:12px;
+  background:#fff;border:none;cursor:pointer;
+  font-size:14px;font-weight:600;color:#1f2937;
+  font-family:'DM Sans',sans-serif;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+  transition:all .2s;
+}
+.google-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.google-btn:active{transform:translateY(0)}
+.google-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.google-btn svg{flex-shrink:0}
+.auth-error{
+  margin-top:1rem;padding:10px 14px;border-radius:9px;
+  background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);
+  font-size:12px;color:#fca5a5;display:none
+}
+.auth-footer{margin-top:1.5rem;font-size:11px;color:rgba(255,255,255,0.25);line-height:1.7}
+.auth-footer a{color:rgba(255,255,255,0.4);text-decoration:none}
+
+/* ── USER PILL (header) ──────────────────────────────────────── */
+.user-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 12px 4px 4px;border-radius:20px;
+  background:#f3f4f6;border:1px solid #e5e7eb;cursor:pointer;
+  transition:background .15s;
+}
+.user-pill:hover{background:#e5e7eb}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  object-fit:cover;flex-shrink:0;
+}
+.user-avatar-fallback{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#0d9488,#2563eb);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.user-name{font-size:12px;font-weight:500;color:#374151;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sign-out-btn{
+  font-size:11px;padding:3px 10px;border-radius:6px;
+  background:transparent;border:1px solid #e5e7eb;
+  color:#9ca3af;cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all .15s;
+}
+.sign-out-btn:hover{background:var(--red-dim,#fef2f2);color:#dc2626;border-color:#fecaca}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
 .hdr{
   height:52px;background:#fff;border-bottom:1px solid rgba(0,0,0,0.08);
   display:flex;align-items:center;justify-content:space-between;
@@ -25,8 +96,6 @@ html,body{height:100%;overflow:hidden;background:#f0f2f5;font-family:'DM Sans',s
 }
 .hdr-title{font-weight:700;font-size:15px;color:#111}
 .hdr-badge{font-size:11px;color:#9ca3af;background:#f3f4f6;padding:2px 8px;border-radius:4px;border:1px solid #e5e7eb}
-
-/* TAB BAR */
 .tab-bar{display:flex;gap:2px;background:#f3f4f6;border-radius:9px;padding:3px}
 .tab-btn{
   display:flex;align-items:center;gap:7px;padding:6px 18px;
@@ -34,124 +103,231 @@ html,body{height:100%;overflow:hidden;background:#f0f2f5;font-family:'DM Sans',s
   color:#6b7280;font-size:13px;font-weight:500;cursor:pointer;
   font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;
 }
-.tab-btn.active{
-  background:#fff;color:#111;font-weight:600;
-  box-shadow:0 1px 4px rgba(0,0,0,0.1);
-}
+.tab-btn.active{background:#fff;color:#111;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
 .tab-btn:hover:not(.active){background:rgba(255,255,255,0.6);color:#374151}
 .tab-icon{font-size:15px}
-
+.hdr-right{display:flex;align-items:center;gap:10px}
 .hdr-date{font-size:11px;color:#9ca3af}
 
-/* IFRAME CONTAINER */
+/* ── FRAMES ──────────────────────────────────────────────────── */
 .frames{height:calc(100vh - 52px);position:relative}
 .frame-wrap{position:absolute;inset:0;display:none}
 .frame-wrap.active{display:block}
 iframe{width:100%;height:100%;border:none;display:block}
-
-/* LOADING OVERLAY */
 .frame-loader{
   position:absolute;inset:0;background:#f0f2f5;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   transition:opacity .3s;
 }
 .frame-loader.hidden{opacity:0;pointer-events:none}
-.spinner{
-  width:32px;height:32px;border:3px solid #e5e7eb;
-  border-top-color:#2563eb;border-radius:50%;
-  animation:spin .7s linear infinite;
-}
+.spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite}
+.loader-text{font-size:13px;color:#9ca3af}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loader-text{font-size:13px;color:#9ca3af;font-weight:500}
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <div class="hdr-logo">
-    <div class="hdr-icon">📦</div>
-    <span class="hdr-title">AstroTalk</span>
-    <span class="hdr-badge">Inventory Portal</span>
-  </div>
+<!-- ── AUTH SCREEN ─────────────────────────────────────────── -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">🏪</div>
+    <div class="auth-title">Inventory Portal</div>
+    <div class="auth-sub">Sign in with your AstroTalk Google account<br>to access the dashboard</div>
 
-  <div class="tab-bar">
-    <button class="tab-btn active" onclick="show('products',this)">
-      <span class="tab-icon">🛍️</span>Products
+    <button class="google-btn" id="googleBtn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+      </svg>
+      Continue with Google
     </button>
-    <button class="tab-btn" onclick="show('packaging',this)">
-      <span class="tab-icon">📦</span>Packaging
-    </button>
-    <button class="tab-btn" onclick="show('finance',this)">
-      <span class="tab-icon">💰</span>Finance
-    </button>
-    <button class="tab-btn" onclick="show('certificates',this)">
-      <span class="tab-icon">📜</span>Certificates
-    </button>
-  </div>
 
-  <div class="hdr-date">28 May 2026</div>
+    <div class="auth-error" id="authError"></div>
+
+    <div class="auth-footer">
+      Only <strong style="color:rgba(255,255,255,0.4)">@astrotalk.com</strong> accounts are allowed.<br>
+      Contact your admin if you need access.
+    </div>
+  </div>
 </div>
 
-<div class="frames">
-
-  <div class="frame-wrap active" id="wrap-products">
-    <div class="frame-loader" id="loader-products">
-      <div class="spinner"></div>
-      <div class="loader-text">Loading Products dashboard…</div>
+<!-- ── MAIN APP (hidden until auth) ──────────────────────────── -->
+<div id="app" style="display:none;height:100%">
+  <div class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">🏪</div>
+      <span class="hdr-title">AstroTalk</span>
+      <span class="hdr-badge">Inventory Portal</span>
     </div>
-    <iframe src="https://weekly-dashboard-yxe7.vercel.app/"
-            title="Products Inventory"
-            onload="loaded('products')"></iframe>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="show('products',this)">
+        <span class="tab-icon">🛍️</span>Products
+      </button>
+      <button class="tab-btn" onclick="show('packaging',this)">
+        <span class="tab-icon">📦</span>Packaging
+      </button>
+      <button class="tab-btn" onclick="show('finance',this)">
+        <span class="tab-icon">💰</span>Finance
+      </button>
+      <button class="tab-btn" onclick="show('certificates',this)">
+        <span class="tab-icon">📜</span>Certificates
+      </button>
+    </div>
+
+    <div class="hdr-right">
+      <span class="hdr-date" id="hdrDate"></span>
+      <div class="user-pill" id="userPill">
+        <div class="user-avatar-fallback" id="userAvatarFallback">?</div>
+        <span class="user-name" id="userName">—</span>
+      </div>
+      <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+    </div>
   </div>
 
-  <div class="frame-wrap" id="wrap-packaging">
-    <div class="frame-loader" id="loader-packaging">
-      <div class="spinner"></div>
-      <div class="loader-text">Loading Packaging dashboard…</div>
+  <div class="frames">
+    <div class="frame-wrap active" id="wrap-products">
+      <div class="frame-loader" id="loader-products">
+        <div class="spinner"></div>
+        <div class="loader-text">Loading Products…</div>
+      </div>
+      <iframe src="https://weekly-dashboard-yxe7.vercel.app/"
+              title="Products dashboard"
+              onload="loaded('products')"></iframe>
     </div>
-    <iframe src="packaging.html"
-            title="Packaging Inventory"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-            onload="loaded('packaging')"></iframe>
-  </div>
 
-  <div class="frame-wrap" id="wrap-certificates">
-    <div class="frame-loader" id="loader-certificates">
-      <div class="spinner"></div>
-      <div class="loader-text">Loading Certificates dashboard…</div>
+    <div class="frame-wrap" id="wrap-packaging">
+      <div class="frame-loader" id="loader-packaging">
+        <div class="spinner"></div>
+        <div class="loader-text">Loading Packaging…</div>
+      </div>
+      <iframe src="packaging.html"
+              title="Packaging dashboard"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+              onload="loaded('packaging')"></iframe>
     </div>
-    <iframe src="certificates.html"
-            title="Certificate Inventory"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-            onload="loaded('certificates')"></iframe>
-  </div>
 
-
-  <div class="frame-wrap" id="wrap-finance">
-    <div class="frame-loader" id="loader-finance">
-      <div class="spinner"></div>
-      <div class="loader-text">Loading Finance dashboard…</div>
+    <div class="frame-wrap" id="wrap-finance">
+      <div class="frame-loader" id="loader-finance">
+        <div class="spinner"></div>
+        <div class="loader-text">Loading Finance…</div>
+      </div>
+      <iframe src="finance.html"
+              title="Finance — PO Payments"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+              onload="loaded('finance')"></iframe>
     </div>
-    <iframe src="finance.html"
-            title="Finance — PO Payments"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-            onload="loaded('finance')"></iframe>
-  </div>
 
+    <div class="frame-wrap" id="wrap-certificates">
+      <div class="frame-loader" id="loader-certificates">
+        <div class="spinner"></div>
+        <div class="loader-text">Loading Certificates…</div>
+      </div>
+      <iframe src="certificates.html"
+              title="Certificates"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+              onload="loaded('certificates')"></iframe>
+    </div>
+  </div>
 </div>
 
 <script>
+// ── CONFIG ──────────────────────────────────────────────────────────────
+const ALLOWED_DOMAIN = 'astrotalk.com';
+const SESSION_KEY    = 'inv_portal_session';
+
+// ── DATE ────────────────────────────────────────────────────────────────
+document.getElementById('hdrDate').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+
+// ── TAB SWITCHING ───────────────────────────────────────────────────────
 function show(id, btn) {
   document.querySelectorAll('.frame-wrap').forEach(w => w.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('wrap-' + id).classList.add('active');
+  document.getElementById('wrap-'+id).classList.add('active');
   btn.classList.add('active');
 }
-
 function loaded(id) {
-  const loader = document.getElementById('loader-' + id);
+  const loader = document.getElementById('loader-'+id);
   if (loader) loader.classList.add('hidden');
 }
+
+// ── AUTH ────────────────────────────────────────────────────────────────
+function signInWithGoogle() {
+  const btn = document.getElementById('googleBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" style="animation:spin .7s linear infinite"><circle cx="9" cy="9" r="7" fill="none" stroke="#e5e7eb" stroke-width="2"/><path d="M9 2a7 7 0 0 1 7 7" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/></svg> Signing in…`;
+  // Redirect to our Vercel OAuth handler
+  window.location.href = '/api/auth?action=login';
+}
+
+function signOut() {
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  // Hit the logout endpoint to clear cookie
+  fetch('/api/auth?action=logout').finally(() => {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('googleBtn').disabled = false;
+    document.getElementById('googleBtn').innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg> Continue with Google`;
+  });
+}
+
+function showError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('googleBtn').disabled = false;
+  document.getElementById('googleBtn').innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg> Continue with Google`;
+}
+
+function showApp(user) {
+  // Update user UI
+  document.getElementById('userName').textContent = user.name || user.email.split('@')[0];
+  const initials = (user.name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const fallback = document.getElementById('userAvatarFallback');
+  if (user.picture) {
+    const img = document.createElement('img');
+    img.src = user.picture;
+    img.className = 'user-avatar';
+    img.alt = user.name;
+    img.onerror = () => { fallback.textContent = initials; };
+    fallback.parentNode.replaceChild(img, fallback);
+  } else {
+    fallback.textContent = initials;
+  }
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').style.display = 'block';
+}
+
+// ── SESSION CHECK ON LOAD ────────────────────────────────────────────────
+async function checkSession() {
+  // Check for OAuth callback (?code=...)
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('error')) {
+    const err = params.get('error_description') || params.get('error');
+    showError(err === 'access_denied' ? 'Sign-in was cancelled.' : 'Sign-in failed: ' + err);
+    window.history.replaceState({}, '', '/');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth?action=session', { credentials: 'include' });
+    if (res.ok) {
+      const user = await res.json();
+      if (user && user.email) {
+        showApp(user);
+        return;
+      }
+    }
+  } catch(e) { /* no active session */ }
+
+  // No session — show login
+  document.getElementById('authScreen').classList.remove('hidden');
+}
+
+checkSession();
 </script>
 </body>
 </html>
