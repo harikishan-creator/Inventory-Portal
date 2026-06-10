@@ -217,7 +217,7 @@ td.muted{color:var(--text2);font-size:12px}
       <label>Status</label>
       <select id="advStatus" onchange="renderAdv()">
         <option value="">All</option>
-        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option>
+        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option><option>Unknown</option>
       </select>
       <div class="sep"></div>
       <label>Vendor</label>
@@ -265,7 +265,7 @@ td.muted{color:var(--text2);font-size:12px}
       <label>Status</label>
       <select id="finStatus" onchange="renderFin()">
         <option value="">All</option>
-        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option>
+        <option>Completed</option><option>Uploaded</option><option>Pending</option><option>not required</option><option>Unknown</option>
       </select>
       <div class="sep"></div>
       <label>Vendor</label>
@@ -422,11 +422,12 @@ const L=n=>(Math.abs(n)/100000).toFixed(1)+'L';
 
 const normStatus=s=>{
   const l=(s||'').trim().toLowerCase();
-  if(l==='completed') return 'Completed';
-  if(l==='uploaded')  return 'Uploaded';
-  if(l==='pending')   return 'Pending';
-  if(l==='not required'||l==='not_required'||l==='not req') return 'not required';
-  return (s||'').trim()||'Pending';
+  if(l==='completed')                                          return 'Completed';
+  if(l==='uploaded')                                           return 'Uploaded';
+  if(l==='pending')                                            return 'Pending';
+  if(l==='not required'||l==='not_required'||l==='not req')   return 'not required';
+  if(!l)                                                       return 'Unknown';
+  return (s||'').trim();
 };
 
 // Parse DD-MM-YYYY, DD/MM/YYYY, "08 Apr", "08Apr" → "YYYY-MM-DD" or null
@@ -467,12 +468,23 @@ async function loadData(manual=false){
     if(!text) throw new Error('All fetch attempts failed');
     const rows=Papa.parse(text,{skipEmptyLines:true}).data;
     const poMap=new Map();
+    const conflicts=[];
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       const po=(r[C.po]||'').trim();
       if(!po.startsWith('POFZP')&&!po.startsWith('POASTN')) continue;
-      poMap.set(po,r);
+      if(poMap.has(po)){
+        const prev=poMap.get(po);
+        // Only flag as conflict if assignee or status differs
+        if(prev[C.a]!==r[C.a]||prev[C.finStatus]!==r[C.finStatus]){
+          conflicts.push({po,row1:prev,row2:r});
+        }
+        // Keep FIRST occurrence (more conservative)
+      } else {
+        poMap.set(po,r);
+      }
     }
+    window._dataConflicts=conflicts;
     POS=[];
     for(const[po,r]of poMap){
       const advDateIso=parseDate(r[C.advDate]);
@@ -511,6 +523,15 @@ async function loadData(manual=false){
 
 // ── BUILD ALL ──────────────────────────────────────────────────────────────
 function buildAll(){
+  // Show conflict warning if any duplicate POs with differing data exist
+  if(window._dataConflicts&&window._dataConflicts.length>0){
+    const eb=document.getElementById('errBanner');
+    eb.style.display='block';
+    eb.style.background='var(--amber-dim)';eb.style.borderColor='var(--amber-mid)';eb.style.color='var(--amber)';
+    eb.innerHTML='⚠ '+window._dataConflicts.length+' conflicting duplicate PO(s) found in sheet: '+
+      window._dataConflicts.map(x=>`<strong>${x.po}</strong> (${x.row1[0]} vs ${x.row2[0]})`).join(', ')+
+      '. First occurrence kept. Please fix in Google Sheet.';
+  }
   buildOverviewMetrics();
   buildAdvMetrics();
   buildFinMetrics();
@@ -525,25 +546,27 @@ function buildAll(){
 function buildOverviewMetrics(){
   const total=POS.reduce((s,r)=>s+r.tot,0);
   const totalAdv=POS.reduce((s,r)=>s+r.adv,0);
-  const totalFin=POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const totalFin=POS.reduce((s,r)=>s+r.fin,0);
   const comp=POS.filter(r=>r.finStatus==='Completed').length;
   const notReq=POS.filter(r=>r.finStatus==='not required').length;
   const pending=POS.filter(r=>r.finStatus==='Pending').length;
   const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
+  const unk=POS.filter(r=>r.finStatus==='Unknown').length;
   const holds=POS.filter(r=>r.remark.toLowerCase().includes('hold')).length;
   const assignees=[...new Set(POS.map(r=>r.a).filter(Boolean))];
-  const sum=comp+notReq+pending+upl;
+  const sum=comp+notReq+pending+upl+unk;
   const ok=sum===POS.length;
   document.getElementById('ovMetrics').innerHTML=`
     <div class="metric-card passive"><div class="metric-label">Total POs</div><div class="metric-val">${POS.length}</div><div class="metric-sub">${assignees.length} assignees · <span style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓ match':'⚠ sum='+sum}</span></div></div>
     <div class="metric-card passive accent-blue"><div class="metric-label">Total paid out</div><div class="metric-val">₹${CR(total)}</div><div class="metric-sub">${L(total)}</div></div>
     <div class="metric-card passive accent-purple"><div class="metric-label">Advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
-    <div class="metric-card passive accent-green"><div class="metric-label">Final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
+    <div class="metric-card passive accent-green"><div class="metric-label">Final payable</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
     <div class="metric-card accent-green" onclick="gotoFin('Completed')"><div class="metric-label">Final completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to view →</div></div>
     <div class="metric-card accent-blue" onclick="gotoFin('Uploaded')"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to view →</div></div>
     <div class="metric-card accent-amber" onclick="gotoFin('Pending')"><div class="metric-label">Final pending</div><div class="metric-val">${pending}</div><div class="metric-sub">click to view →</div></div>
     <div class="metric-card accent-red" onclick="switchTab('actions',document.querySelector('.nav-btn:nth-child(5)'))"><div class="metric-label">On hold</div><div class="metric-val">${holds}</div><div class="metric-sub">click to view →</div></div>
     <div class="metric-card" onclick="gotoFin('not required')"><div class="metric-label">Not required</div><div class="metric-val">${notReq}</div><div class="metric-sub">click to view →</div></div>
+    ${unk>0?`<div class="metric-card accent-red" onclick="gotoFin('Unknown')"><div class="metric-label">Unknown (blank)</div><div class="metric-val">${unk}</div><div class="metric-sub">no status in sheet</div></div>`:''}
   `;
 }
 
@@ -561,7 +584,8 @@ function buildAdvMetrics(){
   const upl=POS.filter(r=>r.advStatus==='Uploaded').length;
   const pend=POS.filter(r=>r.advStatus==='Pending').length;
   const notR=POS.filter(r=>r.advStatus==='not required').length;
-  const sum=comp+upl+pend+notR;
+  const unk=POS.filter(r=>r.advStatus==='Unknown').length;
+  const sum=comp+upl+pend+notR+unk;
   document.getElementById('advMetrics').innerHTML=`
     <div class="metric-card passive accent-purple"><div class="metric-label">Total advance paid</div><div class="metric-val">₹${CR(totalAdv)}</div><div class="metric-sub">${L(totalAdv)}</div></div>
     <div class="metric-card passive"><div class="metric-label">POs with advance</div><div class="metric-val">${withAdv}</div><div class="metric-sub">of ${POS.length} total</div></div>
@@ -576,18 +600,20 @@ function setAdvFilter(s){document.getElementById('advStatus').value=s;renderAdv(
 
 // ── FIN METRICS ───────────────────────────────────────────────────────────
 function buildFinMetrics(){
-  const totalFin=POS.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const totalFin=POS.reduce((s,r)=>s+r.fin,0);
   const comp=POS.filter(r=>r.finStatus==='Completed').length;
   const pend=POS.filter(r=>r.finStatus==='Pending').length;
   const notR=POS.filter(r=>r.finStatus==='not required').length;
   const upl=POS.filter(r=>r.finStatus==='Uploaded').length;
-  const sum=comp+pend+notR+upl;
+  const unk=POS.filter(r=>r.finStatus==='Unknown').length;
+  const sum=comp+pend+notR+upl+unk;
   document.getElementById('finMetrics').innerHTML=`
     <div class="metric-card passive accent-green"><div class="metric-label">Total final paid</div><div class="metric-val">₹${CR(totalFin)}</div><div class="metric-sub">${L(totalFin)}</div></div>
     <div class="metric-card accent-green" onclick="document.getElementById('finStatus').value='Completed';renderFin()"><div class="metric-label">Completed</div><div class="metric-val">${comp}</div><div class="metric-sub">click to filter →</div></div>
     <div class="metric-card accent-blue" onclick="document.getElementById('finStatus').value='Uploaded';renderFin()"><div class="metric-label">Uploaded</div><div class="metric-val">${upl}</div><div class="metric-sub">click to filter →</div></div>
     <div class="metric-card accent-amber" onclick="document.getElementById('finStatus').value='Pending';renderFin()"><div class="metric-label">Pending</div><div class="metric-val">${pend}</div><div class="metric-sub">click to filter →</div></div>
     <div class="metric-card" onclick="document.getElementById('finStatus').value='not required';renderFin()"><div class="metric-label">Not required</div><div class="metric-val">${notR}</div><div class="metric-sub">click to filter →</div></div>
+    ${unk>0?`<div class="metric-card accent-red" onclick="document.getElementById('finStatus').value='Unknown';renderFin()"><div class="metric-label">Unknown (blank)</div><div class="metric-val">${unk}</div><div class="metric-sub">no status set</div></div>`:''}
     <div class="metric-card passive"><div class="metric-label">Sum check</div><div class="metric-val" style="font-size:14px;color:${sum===POS.length?'var(--green)':'var(--red)'}">${sum===POS.length?'✓ '+sum:'⚠ '+sum+'/'+POS.length}</div><div class="metric-sub">${sum===POS.length?'all accounted':'mismatch!'}</div></div>
   `;
 }
@@ -668,7 +694,7 @@ function getMonthData(){
   POS.forEach(r=>{
     const m=r.monthKey||'Unknown';
     if(!map[m]) map[m]={ym:m,count:0,tot:0,adv:0,fin:0};
-    map[m].count++;map[m].tot+=r.tot;map[m].adv+=r.adv;map[m].fin+=r.fin>0?r.fin:0;
+    map[m].count++;map[m].tot+=r.tot;map[m].adv+=r.adv;map[m].fin+=r.fin;
   });
   return Object.values(map).filter(m=>m.ym&&m.ym!=='Unknown').sort((a,b)=>a.ym.localeCompare(b.ym));
 }
@@ -837,6 +863,11 @@ function renderFin(){
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────
 function renderActions(){
+  // Flag data mismatches (col9+col10 != col11)
+  const mismatches=POS.filter(r=>Math.abs((r.adv+r.fin)-r.tot)>1&&r.tot!==0);
+  if(mismatches.length>0){
+    console.warn('Data mismatches (adv+fin≠total):',mismatches.map(r=>r.po));
+  }
   const holds=POS.filter(r=>r.remark.toLowerCase().includes('hold')||r.finStatus==='not required');
   const finPend=POS.filter(r=>(r.finStatus==='Pending'||r.finStatus==='Uploaded')&&!r.remark.toLowerCase().includes('hold'));
   const advPend=POS.filter(r=>r.advStatus==='Pending'||r.advStatus==='Uploaded');
@@ -867,7 +898,7 @@ function getVendorData(){
   const m={};
   POS.forEach(r=>{
     if(!m[r.v]) m[r.v]={v:r.v,pos:0,tot:0,adv:0,fin:0};
-    m[r.v].pos++;m[r.v].tot+=r.tot;m[r.v].adv+=r.adv;m[r.v].fin+=r.fin>0?r.fin:0;
+    m[r.v].pos++;m[r.v].tot+=r.tot;m[r.v].adv+=r.adv;m[r.v].fin+=r.fin;
   });
   return Object.values(m).sort((a,b)=>b.tot-a.tot);
 }
@@ -896,7 +927,7 @@ function openVendorModal(name){
   const pos=POS.filter(r=>r.v===name);
   const tot=pos.reduce((s,r)=>s+r.tot,0);
   const adv=pos.reduce((s,r)=>s+r.adv,0);
-  const fin=pos.reduce((s,r)=>s+(r.fin>0?r.fin:0),0);
+  const fin=pos.reduce((s,r)=>s+(r.fin),0);
   document.getElementById('modalName').textContent=name;
   document.getElementById('modalSub').textContent=pos.length+' POs · '+INR(tot)+' total paid';
   document.getElementById('modalStats').innerHTML=`
