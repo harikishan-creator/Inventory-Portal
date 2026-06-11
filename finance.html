@@ -304,18 +304,39 @@ td.muted{color:var(--text2);font-size:12px}
       <span class="pill pill-blue" id="monthPill">—</span>
     </div>
     <div class="month-chips" id="monthChips"></div>
-    <div class="card" style="margin-bottom:1.25rem;padding:1rem 1.25rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">POs per month — count &amp; value</div>
-        <div style="display:flex;gap:4px;background:var(--bg3);padding:3px;border-radius:8px">
-          <button id="modeCount" onclick="setChartMode('count')" style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.1);color:var(--text)">PO Count</button>
-          <button id="modeValue" onclick="setChartMode('value')" style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">₹ Value</button>
-          <button id="modeBoth"  onclick="setChartMode('both')"  style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">Both</button>
+    <!-- Summary strip -->
+    <div id="monthChartSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"></div>
+
+    <!-- Two charts side by side -->
+    <div class="charts-row" style="margin-bottom:1.25rem">
+      <!-- Left: Monthly bar (count + value toggle) -->
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="chart-title" style="margin-bottom:0">Monthly POs</div>
+          <div style="display:flex;gap:3px;background:var(--bg3);padding:2px;border-radius:7px">
+            <button id="modeCount" onclick="setChartMode('count')" style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);color:var(--text)">Count</button>
+            <button id="modeValue" onclick="setChartMode('value')" style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">₹ Value</button>
+            <button id="modeBoth"  onclick="setChartMode('both')"  style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">Both</button>
+          </div>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="monthPoChart"></canvas></div>
+        <canvas id="monthValChart" style="display:none"></canvas>
+      </div>
+
+      <!-- Right: Vendor pie (PO count or ₹ value toggle) -->
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="chart-title" style="margin-bottom:0">Top vendors</div>
+          <div style="display:flex;gap:3px;background:var(--bg3);padding:2px;border-radius:7px">
+            <button id="pieCount" onclick="setVendorPieMode('count')" style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);color:var(--text)">PO Count</button>
+            <button id="pieValue" onclick="setVendorPieMode('value')" style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">₹ Value</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="position:relative;width:160px;height:160px;flex-shrink:0"><canvas id="vendorPieChart"></canvas></div>
+          <div id="vendorPieLegend" style="flex:1;overflow-y:auto;max-height:160px;font-size:11px;display:flex;flex-direction:column;gap:4px"></div>
         </div>
       </div>
-      <div id="monthChartSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"></div>
-      <div style="position:relative;height:260px"><canvas id="monthPoChart"></canvas></div>
-      <canvas id="monthValChart" style="display:none"></canvas>
     </div>
     <div class="section-hdr">
       <span class="section-title" id="monthTableTitle">All POs</span>
@@ -788,6 +809,10 @@ function buildMonthTab(){
   window._chartMode = window._chartMode || 'count';
   buildMonthChart(monthData, window._chartMode);
   renderMonthTable();
+  // Build vendor pie for current filtered data
+  const pieData = activeMonthFilter ? POS.filter(r=>r.monthKey===activeMonthFilter) : POS;
+  window._monthFilteredPOS = pieData;
+  buildVendorPie(pieData, window._vendorPieMode||'count');
 }
 
 function setChartMode(mode){
@@ -806,6 +831,74 @@ function setChartMode(mode){
   });
   if(window._monthData) buildMonthChart(window._monthData, mode);
 }
+function setVendorPieMode(mode){
+  window._vendorPieMode = mode;
+  ['count','value'].forEach(m=>{
+    const btn=document.getElementById('pie'+m.charAt(0).toUpperCase()+m.slice(1));
+    if(!btn) return;
+    if(m===mode){btn.style.background='#fff';btn.style.fontWeight='600';btn.style.color='var(--text)';btn.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';}
+    else{btn.style.background='transparent';btn.style.fontWeight='400';btn.style.color='var(--text2)';btn.style.boxShadow='none';}
+  });
+  const data = window._monthFilteredPOS || POS;
+  buildVendorPie(data, mode);
+}
+
+function buildVendorPie(data, mode){
+  mode = mode || window._vendorPieMode || 'count';
+  window._vendorPieMode = mode;
+
+  // Aggregate by vendor
+  const vMap={};
+  data.forEach(r=>{
+    if(!vMap[r.v]) vMap[r.v]={pos:0,tot:0};
+    vMap[r.v].pos++;
+    vMap[r.v].tot+=r.tot||0;
+  });
+
+  // Sort and take top 8, group rest as "Others"
+  const sorted = Object.entries(vMap).sort((a,b)=>mode==='count'?b[1].pos-a[1].pos:b[1].tot-a[1].tot);
+  const top8 = sorted.slice(0,8);
+  const rest = sorted.slice(8);
+  if(rest.length){
+    const rPos=rest.reduce((s,[,v])=>s+v.pos,0);
+    const rTot=rest.reduce((s,[,v])=>s+v.tot,0);
+    top8.push(['Others',{pos:rPos,tot:rTot}]);
+  }
+
+  const COLORS=['#7c3aed','#2563eb','#16a34a','#d97706','#dc2626','#0d9488','#ea580c','#9333ea','#9ca3af'];
+  const labels = top8.map(([v])=>v);
+  const vals   = top8.map(([,d])=>mode==='count'?d.pos:Math.round(d.tot/100000*10)/10);
+
+  if(charts.vPie) charts.vPie.destroy();
+  charts.vPie=new Chart(document.getElementById('vendorPieChart'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:COLORS,borderWidth:1,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>{
+          const [name,d]=top8[ctx.dataIndex];
+          return mode==='count'
+            ?[` ${name}`,` ${d.pos} POs`,` ₹${L(d.tot)}`]
+            :[` ${name}`,` ₹${L(d.tot)}`,` ${d.pos} POs`];
+        }}}
+      }
+    }
+  });
+
+  // Legend
+  const lg=document.getElementById('vendorPieLegend');
+  if(lg){
+    lg.innerHTML=top8.map(([name,d],i)=>`
+      <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="openVendorModal('${name.replace(/'/g,"\'")}')">
+        <span style="width:8px;height:8px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${name}</span>
+        <span style="font-weight:600;color:var(--text);white-space:nowrap">${mode==='count'?d.pos+' POs':'₹'+L(d.tot)}</span>
+        <span style="color:var(--text3);font-size:10px;white-space:nowrap">${mode==='count'?'₹'+L(d.tot):d.pos+' POs'}</span>
+      </div>`).join('');
+  }
+}
+
 
 function buildMonthChart(monthData, mode){
   const mLabels = monthData.map(m=>fmtMonth(m.ym));
@@ -822,35 +915,18 @@ function buildMonthChart(monthData, mode){
     const totalFin  = monthData.reduce((s,m)=>s+m.fin,0);
     const bestCount = monthData.reduce((a,b)=>b.count>a.count?b:a,{ym:'',count:0});
     const bestVal   = monthData.reduce((a,b)=>b.tot>a.tot?b:a,{ym:'',tot:0});
-    summary.innerHTML = `
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">TOTAL POs</span><br>
-        <strong style="font-size:15px;color:var(--purple)">${totalPOs}</strong>
-      </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">TOTAL VALUE</span><br>
-        <strong style="font-size:15px;color:var(--blue)">₹${CR(totalVal)}</strong>
-        <span style="color:var(--text3);font-size:10px"> (${L(totalVal)})</span>
-      </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">ADVANCE</span><br>
-        <strong style="font-size:15px;color:var(--purple)">₹${CR(totalAdv)}</strong>
-      </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">FINAL</span><br>
-        <strong style="font-size:15px;color:var(--green)">₹${CR(totalFin)}</strong>
-      </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">BEST MONTH (POs)</span><br>
-        <strong style="font-size:15px;color:var(--text)">${fmtMonth(bestCount.ym)}</strong>
-        <span style="color:var(--text3);font-size:10px"> ${bestCount.count} POs</span>
-      </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
-        <span style="color:var(--text3);font-size:11px">BEST MONTH (₹)</span><br>
-        <strong style="font-size:15px;color:var(--text)">${fmtMonth(bestVal.ym)}</strong>
-        <span style="color:var(--text3);font-size:10px"> ₹${L(bestVal.tot)}</span>
-      </div>
-    `;
+    const stat=(label,val,sub,color)=>`<div style="background:var(--bg3);border-radius:8px;padding:5px 10px">
+      <div style="font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em">${label}</div>
+      <div style="font-size:14px;font-weight:600;color:${color||'var(--text)'}">${val}</div>
+      ${sub?`<div style="font-size:10px;color:var(--text3)">${sub}</div>`:''}
+    </div>`;
+    summary.innerHTML =
+      stat('Total POs', totalPOs, activeMonthFilter?fmtMonth(activeMonthFilter):'all time', 'var(--purple)') +
+      stat('Total value', '₹'+CR(totalVal), L(totalVal), 'var(--blue)') +
+      stat('Advance', '₹'+CR(totalAdv), '', 'var(--purple)') +
+      stat('Final', '₹'+CR(totalFin), '', 'var(--green)') +
+      stat('Best month', fmtMonth(bestCount.ym), bestCount.count+' POs', 'var(--text)') +
+      stat('Best value', fmtMonth(bestVal.ym), '₹'+L(bestVal.tot), 'var(--text)');
   }
 
   if(charts.mPo) charts.mPo.destroy();
