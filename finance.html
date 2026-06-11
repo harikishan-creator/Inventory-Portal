@@ -334,7 +334,7 @@ td.muted{color:var(--text2);font-size:12px}
         </div>
         <div style="display:flex;gap:10px;align-items:center">
           <div style="position:relative;width:160px;height:160px;flex-shrink:0"><canvas id="vendorPieChart"></canvas></div>
-          <div id="vendorPieLegend" style="flex:1;overflow-y:auto;max-height:160px;font-size:11px;display:flex;flex-direction:column;gap:4px"></div>
+          <div id="vendorPieLegend" style="flex:1;overflow-y:auto;max-height:200px;font-size:11px;display:flex;flex-direction:column;gap:2px"></div>
         </div>
       </div>
     </div>
@@ -855,19 +855,17 @@ function buildVendorPie(data, mode){
     vMap[r.v].tot+=r.tot||0;
   });
 
-  // Sort and take top 8, group rest as "Others"
-  const sorted = Object.entries(vMap).sort((a,b)=>mode==='count'?b[1].pos-a[1].pos:b[1].tot-a[1].tot);
-  const top8 = sorted.slice(0,8);
-  const rest = sorted.slice(8);
-  if(rest.length){
-    const rPos=rest.reduce((s,[,v])=>s+v.pos,0);
-    const rTot=rest.reduce((s,[,v])=>s+v.tot,0);
-    top8.push(['Others',{pos:rPos,tot:rTot}]);
-  }
+  // Sort ALL vendors — no grouping into "Others"
+  const allVendors = Object.entries(vMap).sort((a,b)=>mode==='count'?b[1].pos-a[1].pos:b[1].tot-a[1].tot);
 
-  const COLORS=['#7c3aed','#2563eb','#16a34a','#d97706','#dc2626','#0d9488','#ea580c','#9333ea','#9ca3af'];
-  const labels = top8.map(([v])=>v);
-  const vals   = top8.map(([,d])=>mode==='count'?d.pos:Math.round(d.tot/100000*10)/10);
+  // Generate enough distinct colors for all vendors (cycle through palette)
+  const PALETTE=['#7c3aed','#2563eb','#16a34a','#d97706','#dc2626','#0d9488','#ea580c','#9333ea',
+                 '#0891b2','#be185d','#65a30d','#b45309','#6366f1','#14b8a6','#f97316','#8b5cf6',
+                 '#3b82f6','#22c55e','#eab308','#ef4444','#06b6d4','#a855f7','#84cc16','#f59e0b'];
+  const COLORS = allVendors.map((_,i)=>PALETTE[i%PALETTE.length]);
+
+  const labels = allVendors.map(([v])=>v);
+  const vals   = allVendors.map(([,d])=>mode==='count'?d.pos:Math.round(d.tot/100000*10)/10);
 
   if(charts.vPie) charts.vPie.destroy();
   charts.vPie=new Chart(document.getElementById('vendorPieChart'),{
@@ -877,7 +875,7 @@ function buildVendorPie(data, mode){
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:ctx=>{
-          const [name,d]=top8[ctx.dataIndex];
+          const [name,d]=allVendors[ctx.dataIndex];
           return mode==='count'
             ?[` ${name}`,` ${d.pos} POs`,` ₹${L(d.tot)}`]
             :[` ${name}`,` ₹${L(d.tot)}`,` ${d.pos} POs`];
@@ -886,16 +884,18 @@ function buildVendorPie(data, mode){
     }
   });
 
-  // Legend
+  // Legend — scrollable, all vendors
   const lg=document.getElementById('vendorPieLegend');
   if(lg){
-    lg.innerHTML=top8.map(([name,d],i)=>`
-      <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="openVendorModal('${name.replace(/'/g,"\'")}')">
+    lg.innerHTML=allVendors.map(([name,d],i)=>{
+      const safeN=name.replace(/\/g,'\\').replace(/'/g,"\'");
+      return `<div style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0" onclick="openVendorModal('${safeN}')">
         <span style="width:8px;height:8px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>
-        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${name}</span>
-        <span style="font-weight:600;color:var(--text);white-space:nowrap">${mode==='count'?d.pos+' POs':'₹'+L(d.tot)}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:11px">${name}</span>
+        <span style="font-weight:600;color:var(--text);white-space:nowrap;font-size:11px">${mode==='count'?d.pos+' POs':'₹'+L(d.tot)}</span>
         <span style="color:var(--text3);font-size:10px;white-space:nowrap">${mode==='count'?'₹'+L(d.tot):d.pos+' POs'}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 }
 
