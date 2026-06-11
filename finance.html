@@ -888,7 +888,7 @@ function buildVendorPie(data, mode){
   const lg=document.getElementById('vendorPieLegend');
   if(lg){
     lg.innerHTML=allVendors.map(([name,d],i)=>{
-      const safeN=name.replace(/\/g,'\\').replace(/'/g,"\'");
+      const safeN=name.replace(/'/g,"’");
       return `<div style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0" onclick="openVendorModal('${safeN}')">
         <span style="width:8px;height:8px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:11px">${name}</span>
