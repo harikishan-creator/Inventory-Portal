@@ -304,15 +304,18 @@ td.muted{color:var(--text2);font-size:12px}
       <span class="pill pill-blue" id="monthPill">—</span>
     </div>
     <div class="month-chips" id="monthChips"></div>
-    <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-title">POs per month</div>
-        <div style="position:relative;height:200px"><canvas id="monthPoChart"></canvas></div>
+    <div class="card" style="margin-bottom:1.25rem;padding:1rem 1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">POs per month — count &amp; value</div>
+        <div style="display:flex;gap:4px;background:var(--bg3);padding:3px;border-radius:8px">
+          <button id="modeCount" onclick="setChartMode('count')" style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.1);color:var(--text)">PO Count</button>
+          <button id="modeValue" onclick="setChartMode('value')" style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">₹ Value</button>
+          <button id="modeBoth"  onclick="setChartMode('both')"  style="padding:4px 14px;border-radius:6px;border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text2)">Both</button>
+        </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">Payment value per month (₹ L)</div>
-        <div style="position:relative;height:200px"><canvas id="monthValChart"></canvas></div>
-      </div>
+      <div id="monthChartSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"></div>
+      <div style="position:relative;height:260px"><canvas id="monthPoChart"></canvas></div>
+      <canvas id="monthValChart" style="display:none"></canvas>
     </div>
     <div class="section-hdr">
       <span class="section-title" id="monthTableTitle">All POs</span>
@@ -410,6 +413,8 @@ td.muted{color:var(--text2);font-size:12px}
 <script>
 const SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQjIwcZ2Q9qsLbxG02dEbgrt8YVQzZGvnlaJAB6Xvep19cf-vz-nQK76s6FErgyH3lY9a4j2lHulq7b/pub?output=csv';
 const PROXIES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u)];
+const CACHE_KEY='inv_finance_v2';
+const CACHE_TTL=30*60*1000; // 30 minutes
 const C={a:0,advDate:1,finDate:2,po:3,link:4,v:5,poStatus:6,advPct:7,advStatus:8,adv:9,fin:10,tot:11,finStatus:12,advComp:13,finComp:14,driveLink:15,recoLink:16,remark:17};
 
 let POS=[],charts={},sortState={},activeMonthFilter=null;
@@ -461,25 +466,51 @@ async function loadData(manual=false){
   const btn=document.getElementById('syncBtn');
   btn.disabled=true; btn.innerHTML='<span class="spin">↻</span> Syncing…';
   if(!manual) document.getElementById('globalLoader').classList.remove('hidden');
+
+  // ── Try cache first (skip on manual sync) ──────────────────────────
+  if(!manual){
+    try{
+      const cached=sessionStorage.getItem(CACHE_KEY);
+      if(cached){
+        const {ts,data,syncLabel}=JSON.parse(cached);
+        if(Date.now()-ts < CACHE_TTL){
+          POS=data;
+          document.getElementById('syncStatus').textContent=syncLabel+' (cached)';
+          document.getElementById('errBanner').style.display='none';
+          buildAll();
+          btn.disabled=false; btn.innerHTML='↻ Sync';
+          document.getElementById('globalLoader').classList.add('hidden');
+          return;
+        }
+      }
+    }catch(e){ /* cache miss, fetch fresh */ }
+  }
+
   try{
     const url=SHEET_CSV+'&t='+Date.now();
     let text=null;
     for(const p of PROXIES){try{const r=await fetch(p(url));if(r.ok){text=await r.text();break;}}catch(e){}}
     if(!text) throw new Error('All fetch attempts failed');
-    const rows=Papa.parse(text,{skipEmptyLines:true}).data;
+
+    // ── Parse: stop at first run of 10 consecutive non-PO rows ────────
+    const allRows=Papa.parse(text,{skipEmptyLines:false}).data;
     const poMap=new Map();
     const conflicts=[];
-    for(let i=1;i<rows.length;i++){
-      const r=rows[i];
+    let consecNonPO=0;
+    for(let i=1;i<allRows.length;i++){
+      const r=allRows[i];
       const po=(r[C.po]||'').trim();
-      if(!po.startsWith('POFZP')&&!po.startsWith('POASTN')) continue;
+      if(!po.startsWith('POFZP')&&!po.startsWith('POASTN')){
+        consecNonPO++;
+        if(consecNonPO>10) break; // stop parsing ghost rows
+        continue;
+      }
+      consecNonPO=0;
       if(poMap.has(po)){
         const prev=poMap.get(po);
-        // Only flag as conflict if assignee or status differs
         if(prev[C.a]!==r[C.a]||prev[C.finStatus]!==r[C.finStatus]){
           conflicts.push({po,row1:prev,row2:r});
         }
-        // Keep FIRST occurrence (more conservative)
       } else {
         poMap.set(po,r);
       }
@@ -511,6 +542,10 @@ async function loadData(manual=false){
     document.getElementById('syncStatus').textContent='Synced '+now;
     document.getElementById('errBanner').style.display='none';
     buildAll();
+    // ── Save to cache ──────────────────────────────────────────────────
+    try{
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ts:Date.now(),data:POS,syncLabel:'Synced '+now}));
+    }catch(e){ /* sessionStorage full or blocked */ }
   }catch(e){
     const eb=document.getElementById('errBanner');
     eb.style.display='block'; eb.textContent='Failed: '+e.message+'. Retrying in 10s…';
@@ -749,27 +784,185 @@ function buildMonthTab(){
     monthData.map(m=>`<span class="month-chip ${activeMonthFilter===m.ym?'active':''}" onclick="setMonthFilter('${m.ym}')">${fmtMonth(m.ym)} <span style="opacity:.7">(${m.count})</span></span>`).join('');
   // Monthly mini-charts
   const mLabels=monthData.map(m=>fmtMonth(m.ym));
-  if(charts.mPo) charts.mPo.destroy();
-  charts.mPo=new Chart(document.getElementById('monthPoChart'),{
-    type:'bar',
-    data:{labels:mLabels,datasets:[{data:monthData.map(m=>m.count),backgroundColor:monthData.map(m=>m.ym===activeMonthFilter?'#7c3aed':'#c4b5fd'),borderWidth:0,borderRadius:3}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw} POs`}}},
-      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}},
-      onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}}
-  });
-  if(charts.mVal) charts.mVal.destroy();
-  charts.mVal=new Chart(document.getElementById('monthValChart'),{
-    type:'bar',
-    data:{labels:mLabels,datasets:[
-      {label:'Advance',data:monthData.map(m=>parseFloat((m.adv/100000).toFixed(1))),backgroundColor:'#a78bfa',borderWidth:0,borderRadius:2},
-      {label:'Final',data:monthData.map(m=>parseFloat((m.fin/100000).toFixed(1))),backgroundColor:'#86efac',borderWidth:0,borderRadius:2},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:c=>` ₹${c.raw}L`}}},
-      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'}}},
-      onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}}
-  });
+  window._monthData = monthData; // store for mode switching
+  window._chartMode = window._chartMode || 'count';
+  buildMonthChart(monthData, window._chartMode);
   renderMonthTable();
+}
+
+function setChartMode(mode){
+  window._chartMode = mode;
+  // Update button styles
+  ['count','value','both'].forEach(m=>{
+    const btn = document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1));
+    if(!btn) return;
+    if(m===mode){
+      btn.style.background='#fff'; btn.style.fontWeight='600';
+      btn.style.color='var(--text)'; btn.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)';
+    } else {
+      btn.style.background='transparent'; btn.style.fontWeight='400';
+      btn.style.color='var(--text2)'; btn.style.boxShadow='none';
+    }
+  });
+  if(window._monthData) buildMonthChart(window._monthData, mode);
+}
+
+function buildMonthChart(monthData, mode){
+  const mLabels = monthData.map(m=>fmtMonth(m.ym));
+  const activeColor   = '#7c3aed';
+  const inactiveColor = '#c4b5fd';
+  const bgColors = monthData.map(m=>m.ym===activeMonthFilter?activeColor:inactiveColor);
+
+  // Update summary strip
+  const summary = document.getElementById('monthChartSummary');
+  if(summary){
+    const totalPOs  = monthData.reduce((s,m)=>s+m.count,0);
+    const totalVal  = monthData.reduce((s,m)=>s+m.tot,0);
+    const totalAdv  = monthData.reduce((s,m)=>s+m.adv,0);
+    const totalFin  = monthData.reduce((s,m)=>s+m.fin,0);
+    const bestCount = monthData.reduce((a,b)=>b.count>a.count?b:a,{ym:'',count:0});
+    const bestVal   = monthData.reduce((a,b)=>b.tot>a.tot?b:a,{ym:'',tot:0});
+    summary.innerHTML = `
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">TOTAL POs</span><br>
+        <strong style="font-size:15px;color:var(--purple)">${totalPOs}</strong>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">TOTAL VALUE</span><br>
+        <strong style="font-size:15px;color:var(--blue)">₹${CR(totalVal)}</strong>
+        <span style="color:var(--text3);font-size:10px"> (${L(totalVal)})</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">ADVANCE</span><br>
+        <strong style="font-size:15px;color:var(--purple)">₹${CR(totalAdv)}</strong>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">FINAL</span><br>
+        <strong style="font-size:15px;color:var(--green)">₹${CR(totalFin)}</strong>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">BEST MONTH (POs)</span><br>
+        <strong style="font-size:15px;color:var(--text)">${fmtMonth(bestCount.ym)}</strong>
+        <span style="color:var(--text3);font-size:10px"> ${bestCount.count} POs</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:6px 12px;font-size:12px">
+        <span style="color:var(--text3);font-size:11px">BEST MONTH (₹)</span><br>
+        <strong style="font-size:15px;color:var(--text)">${fmtMonth(bestVal.ym)}</strong>
+        <span style="color:var(--text3);font-size:10px"> ₹${L(bestVal.tot)}</span>
+      </div>
+    `;
+  }
+
+  if(charts.mPo) charts.mPo.destroy();
+
+  // ── COUNT MODE ────────────────────────────────────────────
+  if(mode==='count'){
+    charts.mPo=new Chart(document.getElementById('monthPoChart'),{
+      type:'bar',
+      data:{labels:mLabels,datasets:[{
+        label:'POs',
+        data:monthData.map(m=>m.count),
+        backgroundColor:bgColors,
+        borderWidth:0,borderRadius:4,
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{callbacks:{
+            label: ctx => {
+              const m = monthData[ctx.dataIndex];
+              return [
+                ` ${m.count} POs`,
+                ` ₹${L(m.tot)} total`,
+                ` ₹${L(m.adv)} advance`,
+                ` ₹${L(m.fin)} final`,
+              ];
+            }
+          }}
+        },
+        scales:{
+          x:{ticks:{font:{size:11}},grid:{display:false}},
+          y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},
+             title:{display:true,text:'No. of POs',font:{size:10}}}
+        },
+        onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}
+      }
+    });
+  }
+
+  // ── VALUE MODE ────────────────────────────────────────────
+  else if(mode==='value'){
+    charts.mPo=new Chart(document.getElementById('monthPoChart'),{
+      type:'bar',
+      data:{labels:mLabels,datasets:[
+        {label:'Advance',data:monthData.map(m=>parseFloat((m.adv/100000).toFixed(1))),backgroundColor:'#a78bfa',borderWidth:0,borderRadius:3},
+        {label:'Final',  data:monthData.map(m=>parseFloat((m.fin/100000).toFixed(1))),backgroundColor:'#86efac',borderWidth:0,borderRadius:3},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{font:{size:11},boxWidth:10}},
+          tooltip:{callbacks:{
+            label: ctx => {
+              const m = monthData[ctx.dataIndex];
+              const label = ctx.dataset.label;
+              return ` ${label}: ₹${ctx.raw}L (${m.count} POs)`;
+            }
+          }}
+        },
+        scales:{
+          x:{ticks:{font:{size:11}},grid:{display:false}},
+          y:{ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{color:'rgba(0,0,0,0.05)'},
+             title:{display:true,text:'₹ Lakhs',font:{size:10}}}
+        },
+        onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}
+      }
+    });
+  }
+
+  // ── BOTH MODE — dual axis ─────────────────────────────────
+  else if(mode==='both'){
+    charts.mPo=new Chart(document.getElementById('monthPoChart'),{
+      type:'bar',
+      data:{labels:mLabels,datasets:[
+        {
+          label:'PO Count',
+          data:monthData.map(m=>m.count),
+          backgroundColor:bgColors,
+          borderWidth:0,borderRadius:3,
+          yAxisID:'yCount',
+        },
+        {
+          label:'Total value (₹L)',
+          data:monthData.map(m=>parseFloat((m.tot/100000).toFixed(1))),
+          type:'line',
+          borderColor:'#2563eb',
+          backgroundColor:'rgba(37,99,235,0.08)',
+          borderWidth:2,pointRadius:5,pointBackgroundColor:'#2563eb',
+          fill:true,yAxisID:'yVal',tension:0.3,
+        },
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{font:{size:11},boxWidth:10}},
+          tooltip:{callbacks:{
+            label: ctx => {
+              const m = monthData[ctx.dataIndex];
+              if(ctx.dataset.label==='PO Count')
+                return [` ${m.count} POs`, ` ₹${L(m.tot)} total`];
+              return ` ₹${ctx.raw}L (${m.count} POs)`;
+            }
+          }}
+        },
+        scales:{
+          x:{ticks:{font:{size:11}},grid:{display:false}},
+          yCount:{position:'left', ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},
+                  title:{display:true,text:'POs',font:{size:10}}},
+          yVal:  {position:'right',ticks:{font:{size:10},callback:v=>'₹'+v+'L'},grid:{display:false},
+                  title:{display:true,text:'₹L',font:{size:10}}},
+        },
+        onClick(e,els){if(els.length) setMonthFilter(monthData[els[0].index].ym===activeMonthFilter?null:monthData[els[0].index].ym);}
+      }
+    });
+  }
 }
 
 function setMonthFilter(ym){
